@@ -14,29 +14,32 @@ timezone: Asia/Tokyo
 
 locale: ja_JP.utf8
 
-# create groups
-groups:
-  - frr
-  - frrvty
-
-# create users
-users:
-  - default
-  - name: frr
-    gecos: FRR suite
-    shell: /sbin/nologin
-    homedir: /var/run/frr
-    system: true
-    groups:
-      - frr
-      - frrvty
-
 # run apt-get update
 # default false
 package_update: true
 
 # default false
 package_upgrade: true
+
+# packages
+packages:
+  - git
+
+ansible:
+  install_method: pip
+  pull:
+    url: "https://github.com/takamitsu-iida/frr-on-cml.git"
+    playbook_name: ubuntu.yml
+
+
+
+
+
+
+
+
+
+
 
 # add packages
 packages:
@@ -86,7 +89,6 @@ write_files:
         ethernets:
           ens2:
             dhcp4: true
-
 
 runcmd:
 
