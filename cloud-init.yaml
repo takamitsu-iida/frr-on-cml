@@ -1,5 +1,5 @@
-# cloud-config
-hostname: ubuntu
+#cloud-config
+hostname: inserthostname-here
 manage_etc_hosts: True
 system_info:
   default_user:
@@ -11,7 +11,6 @@ ssh_authorized_keys:
   - your-ssh-pubkey-line-goes-here
 
 timezone: Asia/Tokyo
-
 locale: ja_JP.utf8
 
 # run apt-get update
