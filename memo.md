@@ -1,3 +1,7 @@
+      - autoconf
+      - automake
+      - libtool
+      - make
       - libreadline-dev
       - texinfo
       - pkg-config
