@@ -24,13 +24,18 @@ package_upgrade: true
 # packages
 packages:
   - git
+  - python3-pip
 
 ansible:
-  install_method: pip
+  # install_method: pip
+  install_method: distro
+
   pull:
     url: "https://github.com/takamitsu-iida/frr-on-cml.git"
-    playbook_name: ubuntu.yml
+    playbook_name: ubuntu.yaml
 
+  package_name: ansible-core
+  run_user: cisco
 
 
 
