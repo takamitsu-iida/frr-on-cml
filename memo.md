@@ -1,4 +1,15 @@
 
+```bash
+python3 -m venv .venv
+direnv allow
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+
+
+
+
 Ubuntuを作成
 
 GUIでNICを4つ追加
