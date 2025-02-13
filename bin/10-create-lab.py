@@ -108,28 +108,32 @@ if __name__ == '__main__':
         #   populate_interfaces: bool = False, **kwargs
         # )→ Node
 
-        node = lab.create_node(label, 'ubuntu', x, y)
-
         cloud_init_path = app_home.joinpath('cloud-init.yaml')
         with cloud_init_path.open() as f:
             config_string = f.read()
 
-        print(config_string)
+        # print(config_string)
 
+        node = lab.create_node(label, 'ubuntu', x, y)
+
+        node.configuration = config_string
+
+        # 初期状態はインタフェースが存在しないので、追加する
+        # Ubuntuのslot番号の範囲は0-7
+        # slot番号はインタフェース名ではない
+        # ens2-ens9が作られる
+        for i in range(8):
+            node.create_interface(i, wait=True)
+
+        return node
 
 
     def main():
-        cloud_init_path = app_home.joinpath('cloud-init.yaml')
-        with cloud_init_path.open() as f:
-            config_string = f.read()
-
-        print(config_string)
-
-
-        sys.exit(0)
-
 
         client = ClientLibrary(f"https://{cmlAddress}/", cmlUsername, cmlPassword, ssl_verify=False)
+
+        # 接続を待機する
+        client.is_system_ready(wait=True)
 
         # 同タイトルのラボを消す
         for lab in client.find_labs_by_title(title):
@@ -142,16 +146,33 @@ if __name__ == '__main__':
 
         # 外部接続用のNATを作る
         ext_conn_node = lab.create_node("ext-conn-0", "external_connector", 0, 0)
-        # ext_conn_intf = ext_conn_node.create_interface()
 
         # NATに接続するスイッチ（アンマネージド）
-        nat_switch = lab.create_node("nat-sw", "unmanaged_switch", 0, 500)
+        nat_switch = lab.create_node("nat-sw", "unmanaged_switch", 0, 200)
 
         # NATとスイッチを接続する
         lab.connect_two_nodes(ext_conn_node, nat_switch)
 
+
+        # Ubuntuを8個作る
+        x = 0
+        x_grid_width = 50
+        serial = 6000
+        # iは1始まり
+        for i in range(1, 9):
+            x = i * x_grid_width
+
+            # ubuntuを作成
+            ubuntu = create_ubuntu(lab, f"ubuntu-{i}", x, 400)
+
+            ubuntu.add_tag(f"serial:{serial + i}")
+
+            # NAT用スイッチと接続
+            lab.connect_two_nodes(nat_switch, ubuntu)
+
+
         # start the lab
-        lab.start()
+        # lab.start()
 
         # print nodes and interfaces states:
         for node in lab.nodes():
