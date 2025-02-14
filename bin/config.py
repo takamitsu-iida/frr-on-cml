@@ -1,18 +1,21 @@
 
 # CMLのWebUIアドレス
-cmlAddress = "192.168.122.212"
+CML_ADDRESS = "192.168.122.212"
 
 # CMLのユーザ名
-cmlUsername = "admin"
+CML_USERNAME = "admin"
 
 # CMLのパスワード
-cmlPassword = "Cisco123"
-
-# 作成したノードにログインするためのユーザ名
-nodeUsername = "cisco"
-
-# 作成したノードにログインするためのパスワード
-nodePassword = "cisco"
+CML_PASSWORD = "Cisco123"
 
 # Labのタイトル
-title = "Test123"
+LAB_TITLE = "Test123"
+
+# 作成したubuntuノードにログインするためのユーザ名
+UBUNTU_USERNAME = "cisco"
+
+# 作成したubuntuノードにログインするためのパスワード
+UBUNTU_PASSWORD = "cisco"
+
+# シリアルポートの開始番号
+SERIAL_PORT = 7000

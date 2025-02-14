@@ -19,8 +19,8 @@ except ImportError as e:
 #
 # ローカルファイルからの読み込み
 #
-from config import cmlAddress, cmlUsername, cmlPassword, nodeUsername, nodePassword
-from config import title
+from config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD, UBUNTU_USERNAME, UBUNTU_PASSWORD
+from config import LAB_TITLE
 
 
 # このファイルへのPathオブジェクト
@@ -107,8 +107,8 @@ if __name__ == '__main__':
 
 
     def main():
-        client = ClientLibrary(f"https://{cmlAddress}/", cmlUsername, cmlPassword, ssl_verify=False)
-        delete_lab(client, title)
+        client = ClientLibrary(f"https://{CML_ADDRESS}/", CML_USERNAME, CML_PASSWORD, ssl_verify=False)
+        delete_lab(client, LAB_TITLE)
         return 0
 
     # 実行

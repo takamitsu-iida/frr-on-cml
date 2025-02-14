@@ -3,7 +3,6 @@
 #
 # 標準ライブラリのインポート
 #
-import argparse
 import logging
 import sys
 from pathlib import Path
@@ -12,8 +11,9 @@ from pathlib import Path
 # 外部ライブラリのインポート
 #
 try:
+    from jinja2 import Template
     from virl2_client import ClientLibrary
-    from virl2_client.models import Lab
+    from virl2_client.models import Lab, Node
 except ImportError as e:
     logging.critical(str(e))
     sys.exit(-1)
@@ -21,8 +21,9 @@ except ImportError as e:
 #
 # ローカルファイルからの読み込み
 #
-from config import cmlAddress, cmlUsername, cmlPassword, nodeUsername, nodePassword
-from config import title
+from config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD
+from config import LAB_TITLE
+from config import SERIAL_PORT, UBUNTU_USERNAME, UBUNTU_PASSWORD
 
 
 # このファイルへのPathオブジェクト
@@ -99,7 +100,18 @@ logger.addHandler(file_handler)
 #
 if __name__ == '__main__':
 
-    def create_ubuntu(lab: Lab, label: str, x: int = 0, y: int = 0):
+    def read_template_config() -> str:
+        filename = 'cloud-init.yaml.j2'
+        p = app_home.joinpath(filename)
+        try:
+            with p.open() as f:
+                return f.read()
+        except FileNotFoundError:
+            logger.error(f"{filename} not found")
+            sys.exit(1)
+
+
+    def create_node(lab: Lab, label: str, x: int = 0, y: int = 0) -> Node:
         # create_node(
         #   label: str,
         #   node_definition: str,
@@ -108,15 +120,7 @@ if __name__ == '__main__':
         #   populate_interfaces: bool = False, **kwargs
         # )→ Node
 
-        cloud_init_path = app_home.joinpath('cloud-init.yaml')
-        with cloud_init_path.open() as f:
-            config_string = f.read()
-
-        # print(config_string)
-
         node = lab.create_node(label, 'ubuntu', x, y)
-
-        node.configuration = config_string
 
         # 初期状態はインタフェースが存在しないので、追加する
         # Ubuntuのslot番号の範囲は0-7
@@ -128,21 +132,22 @@ if __name__ == '__main__':
         return node
 
 
+
     def main():
 
-        client = ClientLibrary(f"https://{cmlAddress}/", cmlUsername, cmlPassword, ssl_verify=False)
+        client = ClientLibrary(f"https://{CML_ADDRESS}/", CML_USERNAME, CML_PASSWORD, ssl_verify=False)
 
         # 接続を待機する
         client.is_system_ready(wait=True)
 
         # 同タイトルのラボを消す
-        for lab in client.find_labs_by_title(title):
+        for lab in client.find_labs_by_title(LAB_TITLE):
             lab.stop()
             lab.wipe()
             lab.remove()
 
         # ラボを新規作成
-        lab = client.create_lab(title=title)
+        lab = client.create_lab(title=LAB_TITLE)
 
         # 外部接続用のNATを作る
         ext_conn_node = lab.create_node("ext-conn-0", "external_connector", 0, 0)
@@ -153,22 +158,46 @@ if __name__ == '__main__':
         # NATとスイッチを接続する
         lab.connect_two_nodes(ext_conn_node, nat_switch)
 
+        # Ubuntuに設定するcloud-init.yamlのJinja2テンプレートを取り出す
+        template_config = read_template_config()
 
-        # Ubuntuを8個作る
+        # Jinja2のTemplateをインスタンス化する
+        template = Template(template_config)
+
+        # templateに渡すコンテキストオブジェクト
+        context = {
+            "HOSTNAME": "",
+            "UBUNTU_USERNAME": UBUNTU_USERNAME,
+            "UBUNTU_PASSWORD": UBUNTU_PASSWORD,
+        }
+
+        # X座標
         x = 0
         x_grid_width = 50
-        serial = 6000
-        # iは1始まり
-        for i in range(1, 9):
+
+        # Ubuntuを8個作る
+        # iは0始まり
+        for i in range(8):
             x = i * x_grid_width
 
             # ubuntuを作成
-            ubuntu = create_ubuntu(lab, f"ubuntu-{i}", x, 400)
+            node_name = f"ubuntu-{i + 1}"
+            node = create_node(lab, node_name, x, 400)
 
-            ubuntu.add_tag(f"serial:{serial + i}")
+            # タグを設定
+            # 例 serial:6001
+            tag = f"serial:{SERIAL_PORT + i + 1}"
+            node.add_tag(tag=tag)
 
             # NAT用スイッチと接続
-            lab.connect_two_nodes(nat_switch, ubuntu)
+            lab.connect_two_nodes(nat_switch, node)
+
+            # 設定を作る
+            context["HOSTNAME"] = node_name
+            config = template.render(context)
+
+            # ノードのconfigを設定する
+            node.config = config
 
 
         # start the lab
