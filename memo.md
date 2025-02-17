@@ -6,6 +6,52 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+<br>
+
+> NOTE:
+>
+> virl2_clientはCMLのバージョンと一致させる必要がある。
+
+<br>
+
+外部接続 - NAT
+
+```yaml
+    configuration:
+      - name: default
+        content: NAT
+```
+
+外部接続 - システムブリッジ
+
+```yaml
+    configuration:
+      - name: default
+        content: System Bridge
+```
+
+外部接続 - 追加したブリッジ
+
+```yaml
+    configuration:
+      - name: default
+        content: bridge1
+```
+
+
+
+
+
+
+
+## ansible-pullの動作結果確認
+
+cloud-initのログは /var/log/cloud-init.log にある。
+その中にansible-pullの記録も残る。
+
+ansible-pullは `/root/.ansible/pull` に展開されるので、うまくいってないときは、そこにちゃんとリポジトリのプレイブック一式が展開されているか確認する。
+
+作成したアカウントのままだと/rootには行けないので、su -sで権限昇格したシェルを開ける。
 
 
 
