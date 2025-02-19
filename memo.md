@@ -6,9 +6,69 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+
+# Ubuntuのカスタムイメージの作り方
+
+    -  https://www.youtube.com/watch?v=dCWwtKXMUuU
+
+    - CMLにログインして適当なラボを作り、外部接続したubuntuを1台作る
+
+    - コックピットのターミナルにログイン
+
+    - sudo -s -E  でrootのシェルを起動
+
+    - cd /var/lib/libvirt/images/virl-base-images
+
+    - cp -a ubuntu-22 ubuntu-22-iida  ファイル名は要確認（たぶんディレクトリ）
+
+    - chown virl2:virl2 ubuntu-22-iida ファイル名は要確認
+
+    - cd ubuntu-22-iida
+
+    - mv ___.yaml ___-iida.yaml でYAMLファイルの名前をディレクトリの名前と同じになるように変える
+
+    - vi ___-iida.yaml で編集
+
+    - idの値はユニークである必要があるので、必ず変更する、ディレクトリ名と同じでいい
+
+    - labelの値はGUIでOS選択するときにドロップダウンに表示されるので、分かりやすいものに変える
+
+    - descriptionはlabelに合わせておく
+
+    - read_onlyをtrueからfalseに変える
+
+    - systemctl restart virl2.target でプロセスを再起動（稼働中のラボには影響しない）
+
+    - CMLにログイン
+
+    - ubuntuを選択して、SIMULATEタブからイメージを変更する
+
+    - ラボを起動
+
+    - ubuntuを操作して好みのアプリをインストールしてカスタマイズする
+
+    - コックピットに戻る
+
+    - この時点ではイメージファイルに変更は反映されていない
+
+    - ブラウザのURLからラボのUUIDをコピーする
+
+    - cd /var/local/virl2/images/{{UUID}}
+
+    - ここにあるファイルは元のイメージからの変更をnodedisk_0ファイルに保持している
+
+    - qemu-img commit nodedisk_0 で変更を元のイメージに反映する
+
+    - ubuntuをwipeしてコンフィグを破棄して、再び起動すると、変更が反映された状態で起動する
+
+
+
+
+
+
 <br>
 
-> NOTE:
+> [!NOTE]
 >
 > virl2_clientはCMLのバージョンと一致させる必要がある。
 
