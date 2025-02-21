@@ -19,9 +19,8 @@ except ImportError as e:
 #
 # ローカルファイルからの読み込み
 #
-from config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD, UBUNTU_USERNAME, UBUNTU_PASSWORD
-from config import LAB_TITLE
-
+from cml_config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD
+from cml_config import LAB_TITLE
 
 # このファイルへのPathオブジェクト
 app_path = Path(__file__)

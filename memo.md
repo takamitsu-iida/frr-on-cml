@@ -9,72 +9,227 @@ pip install -r requirements.txt
 
 # Ubuntuのカスタムイメージの作り方
 
-    -  https://www.youtube.com/watch?v=dCWwtKXMUuU
+<br>
 
-    - CMLにログインして適当なラボを作り、外部接続したubuntuを1台作る
+> [!NOTE]
+>
+> この動画がわかりやすいです。
+>
+> https://www.youtube.com/watch?v=dCWwtKXMUuU
 
-    - コックピットのターミナルにログイン
+<br>
 
-    - sudo -s -E  でrootのシェルを起動
+1. コックピットのターミナルにログイン
 
-    - cd /var/lib/libvirt/images/virl-base-images
+コックピットはポート番号9090をHTTPSで開けばよい。
 
-    - cp -a ubuntu-22 ubuntu-22-iida  ファイル名は要確認（たぶんディレクトリ）
+すでにブラウザでCMLを開いているのであれば `TOOLS → System Administration` をたどると以下の表示があるので、
+リンクをクリックすればよい。
 
-    - chown virl2:virl2 ubuntu-22-iida ファイル名は要確認
+```text
+The Cockpit service runs independently of the CML2 platform,
+and allows recovery in the event of a system issue.
+It is available at https://192.168.122.212:9090 (opens in a new Tab/Window).
+```
 
-    - cd ubuntu-22-iida
+コックピットの左下に「端末」が見えるので、それを開く。
 
-    - mv ___.yaml ___-iida.yaml でYAMLファイルの名前をディレクトリの名前と同じになるように変える
+1. root権限のシェルを開く
 
-    - vi ___-iida.yaml で編集
+root権限のシェルを起動するには以下のようにする。
 
-    - idの値はユニークである必要があるので、必ず変更する、ディレクトリ名と同じでいい
+```bash
+sudo -s -E
+```
 
-    - labelの値はGUIでOS選択するときにドロップダウンに表示されるので、分かりやすいものに変える
+プロンプトが `$` から `#` に変わる。
 
-    - descriptionはlabelに合わせておく
+1. ubuntuイメージが格納されている場所に移動する
 
-    - read_onlyをtrueからfalseに変える
+```bash
+cd /var/lib/libvirt/images
+cd virl-base-images
+```
 
-    - systemctl restart virl2.target でプロセスを再起動（稼働中のラボには影響しない）
+この場所には各種イメージが保存されている。
 
-    - CMLにログイン
+```bash
+oot@cml-controller:/var/lib/libvirt/images/virl-base-images# ls -l
+total 68
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 alpine-base-3-20-3
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 alpine-desktop-3-20-3
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 alpine-trex-3-20-3
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 alpine-wanem-3-20-3
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 asav-9-22-1-1
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 cat8000v-17-15-01a
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 cat9000v-q200-17-15-01
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 cat9000v-uadp-17-15-01
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 csr1000v-17-03-08a
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 iol-xe-17-15-01
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 ioll2-xe-17-15-01
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 iosv-159-3-m9
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 iosvl2-2020
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 iosxrv9000-24-3-1
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 nxosv9300-10-5-1-f
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 server-tcl-15-0
+drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 ubuntu-24-04-20241004
+root@cml-controller:/var/lib/libvirt/images/virl-base-images#
+```
 
-    - ubuntuを選択して、SIMULATEタブからイメージを変更する
+これらはすべてreadonlyになっていて、変更は反映されない。
 
-    - ラボを起動
+1. ubuntuのイメージをコピーする
 
-    - ubuntuを操作して好みのアプリをインストールしてカスタマイズする
+改造して使いたいのは `ubuntu-24-04-20241004` のイメージ。このディレクトリを属性付きでコピーする。名前は何でも良い。ここでは `-frr` を後ろに追加した。
 
-    - コックピットに戻る
+```bash
+cp -a ubuntu-24-04-20241004 ubuntu-24-04-20241004-frr
+```
 
-    - この時点ではイメージファイルに変更は反映されていない
+念の為、オーナーとグループをvirl2にする（-a付きのコピーなので、オーナーとグループも引き継いでいるはず）。
 
-    - ブラウザのURLからラボのUUIDをコピーする
+```bash
+chown virl2:virl2 ubuntu-24-04-20241004-frr
+```
 
-    - cd /var/local/virl2/images/{{UUID}}
+1. コピーしたディレクトリに移動する
 
-    - ここにあるファイルは元のイメージからの変更をnodedisk_0ファイルに保持している
+```bash
+cd ubuntu-24-04-20241004-frr
+```
 
-    - qemu-img commit nodedisk_0 で変更を元のイメージに反映する
+ここにはイメージファイルとイメージ定義ファイル（YAMLファイル）が置かれている。
 
-    - ubuntuをwipeしてコンフィグを破棄して、再び起動すると、変更が反映された状態で起動する
+1. イメージ定義ファイルの名前をディレクトリ名と一致させる
+
+イメージ定義ファイル（YAML形式のファイル）をディレクトリ名と一致するように変更する。
+
+```bash
+mv ubuntu-24-04-20241004.yaml  ubuntu-24-04-20241004-frr.yaml
+```
+
+1. イメージ定義ファイルを編集する
 
 
+```bash
+vi ubuntu-24-04-20241004-frr.yaml
+```
 
+もとのYAMLはこうなっている。
 
+```YAML
+#
+# Ubuntu 24.04 image definition (cloud image, using cloud-init)
+# generated 2024-10-12
+# part of VIRL^2
+#
+
+id: ubuntu-24-04-20241004
+label: Ubuntu 24.04 - 04 Oct 2024
+description: Ubuntu 24.04 - 04 Oct 2024
+node_definition_id: ubuntu
+disk_image: noble-server-cloudimg-amd64.img
+read_only: true
+schema_version: 0.0.1
+```
+
+- idの値はユニークである必要があるので必ず変更する。ディレクトリ名と同じでよい
+
+- labelの値はGUIでOS選択するときにドロップダウンに表示されるので、分かりやすいものに変える
+
+- descriptionはlabelに合わせておく
+
+- read_onlyをtrueからfalseに変える
+
+編集後はこんな感じ。
+
+```YAML
+#
+# Ubuntu 24.04 image definition (cloud image, using cloud-init)
+# generated 2024-10-12
+# part of VIRL^2
+#
+
+id: ubuntu-24-04-20241004-frr
+label: Ubuntu 24.04 - 04 Oct 2024 - with FRR installed
+description: Ubuntu 24.04 - 04 Oct 2024 -with FRR installed
+node_definition_id: ubuntu
+disk_image: noble-server-cloudimg-amd64.img
+read_only: false
+schema_version: 0.0.1
+```
+
+1. サービスを再起動する
+
+```bash
+systemctl restart virl2.target
+```
+
+サービスを再起動しても、稼働中のラボには影響しない。
+ただし、ブラウザでCMLにログインしていた場合は、すべてログアウトされる。
+
+1. コピーしたイメージで起動するubuntuを作る
+
+手動で作るなら、SETTINGSタブの Image Definition のドロップダウンから上記のlabelのものを選ぶ。
+
+起動したらアップデート、FRRのインストール、などなどを実行して好みのubuntuに仕上げる。
+
+この作業を手動でやるのは少々面倒なので、pythonで自動化する。
+
+`bin/cml_create_frr` を実行すると "create frr" という名前のラボができる。
+このラボを開始すると最新化された状態でubuntuが起動する。
+
+気がすむまでubuntuを操作したら、ラボを停止する。
+
+1. コックピットに戻って作成したラボのubuntuイメージの場所に移動する
+
+この時点では、ubuntu起動時に使ったイメージはまだ変更されていない。
+
+CMLのダッシュボードで当該ラボを開いた状態でURLの文字列をコピーする。
+
+こんな感じのURLになっているので、最後のUUIDの部分をコピーする（この場合は7fe8ece7-6b23-49f3-a852-519c9f0a843aがUUID）
+
+```text
+https://192.168.122.212/lab/7fe8ece7-6b23-49f3-a852-519c9f0a843a
+```
+
+コックピットのターミナルで `/var/local/virl2/images/{{uuid}}` に移動する（`{{uuid}}`の部分は先ほどコピーしたものに置き換える）
+
+もう一つ下のディレクトリに起動中のubuntuのイメージがある。
+
+```bash
+root@cml-controller:/var/local/virl2/images/7fe8ece7-6b23-49f3-a852-519c9f0a843a/2aa37c69-fcdc-4eb0-8e26-e00a95e6676e# ls -l
+total 3114176
+drwxr-xr-x 2 virl2        virl2       4096 Feb 21 07:38 cfg
+-rw-r--r-- 1 libvirt-qemu kvm       376832 Feb 21 07:38 config.img
+-rw-r--r-- 1 virl2        virl2        159 Feb 21 07:38 config.yaml
+-rw-r--r-- 1 libvirt-qemu kvm   3188523008 Feb 21 07:49 node0.img
+```
+
+node0.imgファイルは元のイメージからの変更を保持している。
+
+1. 変更を元のイメージに反映する
+
+```bash
+qemu-img commit node0.img
+```
+
+これで起動時に使ったイメージの方に変更が反映される。
+
+1. ubuntuを起動しなおして動作確認する
+
+ubuntuをwipeしてコンフィグを破棄して、再び起動すると、先ほど施した変更が反映された状態で起動する。
 
 
 <br>
 
 > [!NOTE]
 >
-> virl2_clientはCMLのバージョンと一致させる必要がある。
+> Pythonのモジュール virl2_client はCMLのバージョンと一致させる必要がある。
 
-<br>
+<br><br><br><br>
 
-外部接続 - NAT
+- 外部接続 - NAT
 
 ```yaml
     configuration:
@@ -82,7 +237,7 @@ pip install -r requirements.txt
         content: NAT
 ```
 
-外部接続 - システムブリッジ
+- 外部接続 - システムブリッジ
 
 ```yaml
     configuration:
@@ -90,7 +245,7 @@ pip install -r requirements.txt
         content: System Bridge
 ```
 
-外部接続 - 追加したブリッジ
+- 外部接続 - 追加したブリッジ
 
 ```yaml
     configuration:
@@ -100,20 +255,14 @@ pip install -r requirements.txt
 
 
 
-
-
-
-
 ## ansible-pullの動作結果確認
 
-cloud-initのログは /var/log/cloud-init.log にある。
+cloud-initのログは `/var/log/cloud-init.log` にある。
 その中にansible-pullの記録も残る。
 
 ansible-pullは `/root/.ansible/pull` に展開されるので、うまくいってないときは、そこにちゃんとリポジトリのプレイブック一式が展開されているか確認する。
 
-作成したアカウントのままだと/rootには行けないので、su -sで権限昇格したシェルを開ける。
-
-
+作成したアカウントのままだと/rootには行けないので、su -sで権限昇格したシェルを開けてから移動する。
 
 
 Ubuntuを作成

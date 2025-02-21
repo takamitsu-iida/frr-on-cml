@@ -13,7 +13,6 @@ from pathlib import Path
 try:
     from jinja2 import Template
     from virl2_client import ClientLibrary
-    from virl2_client.models import Lab, Node
 except ImportError as e:
     logging.critical(str(e))
     sys.exit(-1)
@@ -21,10 +20,8 @@ except ImportError as e:
 #
 # ローカルファイルからの読み込み
 #
-from config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD
-from config import LAB_TITLE
-from config import SERIAL_PORT, UBUNTU_USERNAME, UBUNTU_PASSWORD
-
+from cml_config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD
+from cml_config import UBUNTU_USERNAME, UBUNTU_PASSWORD
 
 # このファイルへのPathオブジェクト
 app_path = Path(__file__)
@@ -111,34 +108,14 @@ if __name__ == '__main__':
             sys.exit(1)
 
 
-    def create_node(lab: Lab, label: str, x: int = 0, y: int = 0) -> Node:
-        # create_node(
-        #   label: str,
-        #   node_definition: str,
-        #   x: int = 0, y: int = 0,
-        #   wait: bool | None = None,
-        #   populate_interfaces: bool = False, **kwargs
-        # )→ Node
-
-        node = lab.create_node(label, 'ubuntu', x, y)
-
-        # 初期状態はインタフェースが存在しないので、追加する
-        # Ubuntuのslot番号の範囲は0-7
-        # slot番号はインタフェース名ではない
-        # ens2-ens9が作られる
-        for i in range(8):
-            node.create_interface(i, wait=True)
-
-        return node
-
-
-
     def main():
 
         client = ClientLibrary(f"https://{CML_ADDRESS}/", CML_USERNAME, CML_PASSWORD, ssl_verify=False)
 
         # 接続を待機する
         client.is_system_ready(wait=True)
+
+        LAB_TITLE = "create frr"
 
         # 同タイトルのラボを消す
         for lab in client.find_labs_by_title(LAB_TITLE):
@@ -152,11 +129,17 @@ if __name__ == '__main__':
         # 外部接続用のNATを作る
         ext_conn_node = lab.create_node("ext-conn-0", "external_connector", 0, 0)
 
-        # NATに接続するスイッチ（アンマネージド）
-        nat_switch = lab.create_node("nat-sw", "unmanaged_switch", 0, 200)
+        ubuntu_node = lab.create_node("frr", 'ubuntu', 0, 100)
 
-        # NATとスイッチを接続する
-        lab.connect_two_nodes(ext_conn_node, nat_switch)
+        # 初期状態はインタフェースが存在しないので、追加する
+        # Ubuntuのslot番号の範囲は0-7
+        # slot番号はインタフェース名ではない
+        # ens2-ens9が作られる
+        for i in range(8):
+            ubuntu_node.create_interface(i, wait=True)
+
+        # NATとubuntuを接続する
+        lab.connect_two_nodes(ext_conn_node, ubuntu_node)
 
         # Ubuntuに設定するcloud-init.yamlのJinja2テンプレートを取り出す
         template_config = read_template_config()
@@ -166,49 +149,25 @@ if __name__ == '__main__':
 
         # templateに渡すコンテキストオブジェクト
         context = {
-            "HOSTNAME": "",
+            "HOSTNAME": "frr",
             "UBUNTU_USERNAME": UBUNTU_USERNAME,
             "UBUNTU_PASSWORD": UBUNTU_PASSWORD,
         }
 
-        # X座標
-        x = 0
-        x_grid_width = 50
+        # 設定を作る
+        config = template.render(context)
 
-        # Ubuntuを8個作る
-        # iは0始まり
-        for i in range(8):
-            x = i * x_grid_width
+        # ノードのconfigを設定する
+        ubuntu_node.config = config
 
-            # ubuntuを作成
-            node_name = f"ubuntu-{i + 1}"
-            node = create_node(lab, node_name, x, 400)
+        # 起動イメージを指定する
+        ubuntu_node.image_definition = "ubuntu-24-04-20241004-frr"
 
-            # タグを設定
-            # 例 serial:6001
-            tag = f"serial:{SERIAL_PORT + i + 1}"
-            node.add_tag(tag=tag)
-
-            # NAT用スイッチと接続
-            lab.connect_two_nodes(nat_switch, node)
-
-            # 設定を作る
-            context["HOSTNAME"] = node_name
-            config = template.render(context)
-
-            # ノードのconfigを設定する
-            node.config = config
-
+        # タグを設定
+        ubuntu_node.add_tag(tag="serial:6000")
 
         # start the lab
         # lab.start()
-
-        # print nodes and interfaces states:
-        for node in lab.nodes():
-            print(node, node.state, node.cpu_usage)
-            for interface in node.interfaces():
-                print(interface, interface.readpackets, interface.writepackets)
-
 
         return 0
 

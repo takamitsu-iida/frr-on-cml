@@ -1,0 +1,30 @@
+---
+
+#
+# libyang
+#
+
+- name: git clone libyang
+  ansible.builtin.git:
+    repo: "{{ libyang_repo_url }}"
+    dest: /tmp
+    version: "{{ libyang_version }}"
+
+- name: create build directory
+  ansible.builtin.file:
+    path: /tmp/libyang/build
+    state: directory
+
+- name: execute cmake
+  ansible.builtin.command: cmake --install-prefix /usr -D CMAKE_BUILD_TYPE:String="Release" ..
+  args:
+    src: /tmp/libyang/build
+
+- name: execute make
+  community.general.make:
+    chdir: /tmp/libyang/build
+
+- name: execute make install
+  community.general.make:
+    target: install
+    chdir: /tmp/libyang/build

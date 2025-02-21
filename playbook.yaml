@@ -31,6 +31,10 @@
       - libprotobuf-c-dev
 
       # needed to compile libyang
+      - cmake
+      - libpcre2-dev
+
+      # needed to compile grpc
       - libgrpc++-dev
       - protobuf-compiler-grpc
 
@@ -41,5 +45,10 @@
       - libzmq5
       - libzmq3-dev
 
+    libyang_repo_url: https://github.com/CESNET/libyang.git
+cd libyang
+    libyang_version: v2.1.128
+
   roles:
     - apt
+    - frr
