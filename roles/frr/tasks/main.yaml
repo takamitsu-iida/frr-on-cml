@@ -67,25 +67,26 @@
 
 - name: execute configure
   ansible.builtin.command:
-    cmd: ./configure
-    --prefix=/usr
-    --includedir=/usr/include
-    --bindir=/usr/bin
-    --sbindir=/usr/lib/frr
-    --libdir=/usr/lib/frr
-    --libexecdir=/usr/lib/frr
-    --sysconfdir=/etc
-    --localstatedir=/var
-    --with-moduledir=/usr/lib/frr/modules
-    --enable-configfile-mask=0640
-    --enable-logfile-mask=0640
-    --enable-snmp=agentx
-    --enable-multipath=64
-    --enable-user=frr
-    --enable-group=frr
-    --enable-vty-group=frrvty
-    --with-pkg-git-version
-    --with-pkg-extra-version=-MyOwnFRRVersion
+    cmd: |-
+      ./configure
+      --prefix=/usr
+      --includedir=/usr/include
+      --bindir=/usr/bin
+      --sbindir=/usr/lib/frr
+      --libdir=/usr/lib/frr
+      --libexecdir=/usr/lib/frr
+      --sysconfdir=/etc
+      --localstatedir=/var
+      --with-moduledir=/usr/lib/frr/modules
+      --enable-configfile-mask=0640
+      --enable-logfile-mask=0640
+      --enable-snmp=agentx
+      --enable-multipath=64
+      --enable-user=frr
+      --enable-group=frr
+      --enable-vty-group=frrvty
+      --with-pkg-git-version
+#      --with-pkg-extra-version=-MyOwnFRRVersion
   args:
     chdir: /tmp/frr
 
