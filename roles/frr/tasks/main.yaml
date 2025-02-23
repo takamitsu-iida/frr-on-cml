@@ -1,7 +1,7 @@
 ---
 
 #
-# libyang
+# install libyang
 #
 
 - name: git clone libyang
