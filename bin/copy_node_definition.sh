@@ -3,6 +3,8 @@
 # 本スクリプトはgithubにおいてあるので、このコマンドで実行する
 # curl -Ls https://raw.githubusercontent.com/takamitsu-iida/frr-on-cml/refs/heads/main/bin/copy_node_definition.sh | bash -s
 
+cd ~
+
 # 特権ユーザのシェルを取る
 # パスワードを聞かれる
 sudo -s -E
