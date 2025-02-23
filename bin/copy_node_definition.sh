@@ -13,28 +13,24 @@ NODE_DEF_DESCRIPTION="Ubuntu 24.04 - 04 Oct 2024 FRR installed"
 
 cd /var/lib/libvirt/images/virl-base-images
 
+# すでにターゲットのディレクトリがあるなら消す
+rm -rf ${COPY_DST}
+
+# 属性付きでコピー
 cp -a ${COPY_SRC} ${COPY_DST}
 
+# オーナーをvirl2にする
 chown virl2:virl2 ${COPY_DST}
 
+# 作成したディレクトリに移動
 cd ${COPY_DST}
 
-rm -f ${COPY_SRC}.yaml
+# ノード定義ファイルの名前をディレクトリ名と一致させる
+mv ${COPY_SRC}.yaml ${COPY_DST}.yaml
 
-cat << EOF > ${COPY_DST}.yaml
-#
-# Ubuntu 24.04 image definition (cloud image, using cloud-init)
-# generated 2024-10-12
-# part of VIRL^2
-#
-
-id: ${COPY_DST}
-label: ${NODE_DEF_LABEL}
-description: ${NODE_DEF_DESCRIPTION}
-node_definition_id: ubuntu
-disk_image: noble-server-cloudimg-amd64.img
-read_only: false
-schema_version: 0.0.1
-EOF
+# ノード定義ファイルを編集する
+sed -i -e "s/^id:.*\$/id: ${NODE_DEF_ID}/" ${COPY_DST}.yaml
+sed -i -e "s/^label:.*\$/label: ${NODE_DEF_ID}/" ${COPY_DST}.yaml
+sed -i -e "s/^description:.*\$/description: ${NODE_DEF_DESCRIPTION}/" ${COPY_DST}.yaml
 
 systemctl restart virl2.target
