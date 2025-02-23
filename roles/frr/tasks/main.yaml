@@ -28,3 +28,70 @@
   community.general.make:
     target: install
     chdir: /tmp/libyang/build
+
+- name: create group 'frr'
+  ansible.builtin.group:
+    name: frr
+    state: present
+    gid: 92
+
+- name: create group 'frrvty'
+  ansible.builtin.group:
+    name: frrvty
+    state: present
+    gid: 85
+
+- name: Add user 'frr'
+  ansible.builtin.user:
+    name: frr
+    state: present
+    comment: FRR suite
+    shell: /sbin/nologin
+    create_home: true
+    home: /var/run/frr
+    groups:
+      - frr
+      - frrvty
+
+- name: git clone frr
+  ansible.builtin.git:
+    repo: "{{ frr_repo_url }}"
+    dest: /tmp
+
+- name: execute bootstrap.sh
+  ansible.builtin.command: ./bootstrap.sh
+  args:
+    src: /tmp/frr
+
+- name: execute configure
+  ansible.builtin.command:
+    ./configure
+    --prefix=/usr
+    --includedir=/usr/include
+    --bindir=/usr/bin
+    --sbindir=/usr/lib/frr
+    --libdir=/usr/lib/frr
+    --libexecdir=/usr/lib/frr
+    --sysconfdir=/etc
+    --localstatedir=/var
+    --with-moduledir=/usr/lib/frr/modules
+    --enable-configfile-mask=0640
+    --enable-logfile-mask=0640
+    --enable-snmp=agentx
+    --enable-multipath=64
+    --enable-user=frr
+    --enable-group=frr
+    --enable-vty-group=frrvty
+    --with-pkg-git-version
+    --with-pkg-extra-version=-MyOwnFRRVersion
+  args:
+    src: /tmp/frr
+
+- name: execute make
+  community.general.make:
+    chdir: /tmp/frr
+
+- name: execute make install
+  community.general.make:
+    target: install
+    chdir: /tmp/frr
