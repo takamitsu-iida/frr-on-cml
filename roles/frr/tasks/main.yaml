@@ -95,3 +95,55 @@
   community.general.make:
     target: install
     chdir: /tmp/frr
+
+- name: execute install
+  ansible.builtin.command: install -m 775 -o frr -g frr -d /var/log/frr
+  args:
+    src: /tmp/frr
+
+- name: execute install
+  ansible.builtin.command: install -m 775 -o frr -g frrvty -d /etc/frr
+  args:
+    src: /tmp/frr
+
+- name: execute install
+  ansible.builtin.command: install -m 640 -o frr -g frrvty tools/etc/frr/vtysh.conf /etc/frr/vtysh.conf
+  args:
+    src: /tmp/frr
+
+- name: execute install
+  ansible.builtin.command: install -m 640 -o frr -g frr tools/etc/frr/frr.conf /etc/frr/frr.conf
+  args:
+    src: /tmp/frr
+
+- name: execute install
+  ansible.builtin.command: install -m 640 -o frr -g frr tools/etc/frr/daemons.conf /etc/frr/daemons.conf
+  args:
+    src: /tmp/frr
+
+- name: execute install
+  ansible.builtin.command: install -m 640 -o frr -g frr tools/etc/frr/daemons /etc/frr/daemons
+  args:
+    src: /tmp/frr
+
+- name: change kernel configuration
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.conf
+    regexp: '^#net.ipv4.ip_forward='
+    line: net.ipv4.ip_forward=1
+
+- name: change kernel configuration
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.conf
+    regexp: '^#net.ipv6.conf.all.forwarding='
+    line: net.ipv6.conf.all.forwarding=1
+
+- name: execute install
+  ansible.builtin.command: install -m 644 tools/frr.service /etc/systemd/system/frr.service
+  args:
+    src: /tmp/frr/frr
+
+- name: Make sure a service unit is running
+  ansible.builtin.systemd_service:
+    enabled: true
+    name: frr
