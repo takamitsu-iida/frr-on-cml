@@ -15,7 +15,7 @@ cd /var/lib/libvirt/images/virl-base-images
 
 cp -a ${COPY_SRC} ${COPY_DST}
 
-chwon virl2:virl2 ${COPY_DST}
+chown virl2:virl2 ${COPY_DST}
 
 cd ${COPY_DST}
 
