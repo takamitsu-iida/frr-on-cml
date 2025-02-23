@@ -542,109 +542,17 @@ sudo vtysh
 ```
 
 
+<br><br>
 
-改良版。
-できるだけ共通の項目だけを設定する。
-起動後にOSをアップデートして、必要なモジュール類を追加する。
+# Ubuntuを最新化してFRRをインストールするansible playbook
+
+root権限で作業する。
 
 ```bash
-#cloud-config
-hostname: ubuntu
-manage_etc_hosts: True
-system_info:
-  default_user:
-    name: cisco
-password: cisco
-chpasswd: { expire: False }
-ssh_pwauth: True
-ssh_authorized_keys:
-  - your-ssh-pubkey-line-goes-here
+sudo -s -E
 
-timezone: Asia/Tokyo
+git clone https://github.com/takamitsu-iida/frr-on-cml.git
+cd frr-on-cml
 
-locale: ja_JP.utf8
-
-# FRRのユーザとグループを作成する。
-groups:
-  - frr
-  - frrvty
-
-users:
-  - name: frr
-    gecos: FRR suite
-    shll: /sbin/nologin
-    homedir: /var/run/frr
-    system: true
-    groups: frr, frrvty
-
-# run apt-get update
-# default false
-package_update: true
-
-# default false
-package_upgrade: true
-
-# add packages
-packages:
-  # needed to compile FRR
-  - git
-  - autoconf
-  - automake
-  - libtool
-  - make
-  - libreadline-dev
-  - texinfo
-  - pkg-config
-  - libpam0g-dev
-  - libjson-c-dev
-  - bison
-  - flex
-  - libc-ares-dev
-  - python3-dev
-  - python3-sphinx
-  - install-info
-  - build-essential
-  - libsnmp-dev
-  - perl
-  - libcap-dev
-  - libelf-dev
-  - libunwind-dev
-  - protobuf-c-compiler
-  - libprotobuf-c-dev
-
-  # needed to compile libyang
-  - libgrpc++-dev
-  - protobuf-compiler-grpc
-
-  # needed to use rollback
-  - libsqlite3-dev
-
-  # optional
-  - libzmq5
-  - libzmq3-dev
-
-
-write_files:
-  - path: /etc/netplan/50-cloud-init.yaml
-    content: |
-      network:
-        version: 2
-        ethernets:
-          ens2:
-            dhcp4: true
-            #nameservers:
-            #  addresses:
-            #    - 192.168.122.1
-
-
-runcmd:
-
-  - |
-    cat - << 'EOS' >> /etc/bash.bashrc
-    rsz () if [[ -t 0 ]]; then local escape r c prompt=$(printf '\e7\e[r\e[999;999H\e[6n\e8'); IFS='[;' read -sd R -p j"$prompt" escape r c; stty cols $c rows $r; fi
-    rsz
-    EOS
-
-  - apt autoremove
-
+ansible-playbook playbook.yaml
 ```
