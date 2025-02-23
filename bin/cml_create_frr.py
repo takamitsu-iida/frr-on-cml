@@ -172,7 +172,7 @@ if __name__ == '__main__':
         print(f"lab id: {lab.id}")
         print(f"node id: {ubuntu_node.id}")
 
-        print("\nopen cockpit terminal")
+        print("\nubuntu image directory")
         print(f"cd /var/local/virl2/images/{lab.id}/{ubuntu_node.id}")
 
         return 0
