@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-LAB_TITLE = "create frr"
-
 #
 # 標準ライブラリのインポート
 #
@@ -13,7 +11,6 @@ from pathlib import Path
 # 外部ライブラリのインポート
 #
 try:
-    from jinja2 import Template
     from virl2_client import ClientLibrary
 except ImportError as e:
     logging.critical(str(e))
@@ -23,7 +20,7 @@ except ImportError as e:
 # ローカルファイルからの読み込み
 #
 from cml_config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD
-from cml_config import UBUNTU_USERNAME, UBUNTU_PASSWORD
+from cml_create_frr import LAB_TITLE
 
 # このファイルへのPathオブジェクト
 app_path = Path(__file__)
@@ -99,81 +96,13 @@ logger.addHandler(file_handler)
 #
 if __name__ == '__main__':
 
-    def read_template_config() -> str:
-        filename = 'cloud-init.yaml.j2'
-        p = app_home.joinpath(filename)
-        try:
-            with p.open() as f:
-                return f.read()
-        except FileNotFoundError:
-            logger.error(f"{filename} not found")
-            sys.exit(1)
-
-
     def main():
-
         client = ClientLibrary(f"https://{CML_ADDRESS}/", CML_USERNAME, CML_PASSWORD, ssl_verify=False)
 
-        # 接続を待機する
-        client.is_system_ready(wait=True)
-
-        # 同タイトルのラボを消す
         for lab in client.find_labs_by_title(LAB_TITLE):
             lab.stop()
             lab.wipe()
             lab.remove()
-
-        # ラボを新規作成
-        lab = client.create_lab(title=LAB_TITLE)
-
-        # 外部接続用のNATを作る
-        ext_conn_node = lab.create_node("ext-conn-0", "external_connector", 0, 0)
-
-        ubuntu_node = lab.create_node("frr", 'ubuntu', 0, 100)
-
-        # 初期状態はインタフェースが存在しないので、追加する
-        # Ubuntuのslot番号の範囲は0-7
-        # slot番号はインタフェース名ではない
-        # ens2-ens9が作られる
-        for i in range(8):
-            ubuntu_node.create_interface(i, wait=True)
-
-        # NATとubuntuを接続する
-        lab.connect_two_nodes(ext_conn_node, ubuntu_node)
-
-        # Ubuntuに設定するcloud-init.yamlのJinja2テンプレートを取り出す
-        template_config = read_template_config()
-
-        # Jinja2のTemplateをインスタンス化する
-        template = Template(template_config)
-
-        # templateに渡すコンテキストオブジェクト
-        context = {
-            "HOSTNAME": "frr",
-            "UBUNTU_USERNAME": UBUNTU_USERNAME,
-            "UBUNTU_PASSWORD": UBUNTU_PASSWORD,
-        }
-
-        # 設定を作る
-        config = template.render(context)
-
-        # ノードのconfigを設定する
-        ubuntu_node.config = config
-
-        # 起動イメージを指定する
-        ubuntu_node.image_definition = "ubuntu-24-04-20241004-frr"
-
-        # タグを設定
-        ubuntu_node.add_tag(tag="serial:6000")
-
-        # start the lab
-        lab.start()
-
-        print(f"lab id: {lab.id}")
-        print(f"node id: {ubuntu_node.id}")
-
-        print("\nopen cockpit terminal")
-        print(f"cd /var/local/virl2/images/{lab.id}/{ubuntu_node.id}")
 
         return 0
 

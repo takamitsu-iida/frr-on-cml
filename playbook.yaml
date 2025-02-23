@@ -46,7 +46,6 @@
       - libzmq3-dev
 
     libyang_repo_url: https://github.com/CESNET/libyang.git
-cd libyang
     libyang_version: v2.1.128
 
   roles:

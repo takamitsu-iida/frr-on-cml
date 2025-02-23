@@ -168,15 +168,68 @@ systemctl restart virl2.target
 サービスを再起動しても、稼働中のラボには影響しない。
 ただし、ブラウザでCMLにログインしていた場合は、すべてログアウトされる。
 
+1. 以上を自動化して実行する
+
+ここまでの作業をシェルスクリプトにしたので、コックピットのターミナルを開いてから、以下をコピペするだけでよい。
+
 ```bash
 curl -Ls https://raw.githubusercontent.com/takamitsu-iida/frr-on-cml/refs/heads/main/bin/copy_node_definition.sh | bash -s
 ```
 
+スクリプトの中身は以下の通り。
+
+```bash
+#!/bin/bash
+
+# 特権ユーザのシェルを取る
+# パスワードを聞かれる
+sudo -s -E
+
+COPY_SRC="ubuntu-24-04-20241004"
+COPY_DST="ubuntu-24-04-20241004-frr"
+
+NODE_DEF_ID=${COPY_DST}
+NODE_DEF_LABEL="Ubuntu 24.04 - 04 Oct 2024 FRR installed"
+
+# ubuntuイメージのある場所に移動する
+cd /var/lib/libvirt/images/virl-base-images
+
+# すでにターゲットのディレクトリがあるなら消す
+rm -rf ${COPY_DST}
+
+# 属性付きでubuntuディレクトリをコピー
+cp -a ${COPY_SRC} ${COPY_DST}
+
+# オーナーをvirl2にする
+chown virl2:virl2 ${COPY_DST}
+
+# 作成したディレクトリに移動
+cd ${COPY_DST}
+
+# ノード定義ファイルの名前をディレクトリ名と一致させる
+mv ${COPY_SRC}.yaml ${COPY_DST}.yaml
+
+# ノード定義ファイルを編集する
+sed -i -e "s/^id:.*\$/id: ${NODE_DEF_ID}/" ${COPY_DST}.yaml
+sed -i -e "s/^label:.*\$/label: ${NODE_DEF_LABEL}/" ${COPY_DST}.yaml
+sed -i -e "s/^description:.*\$/description: ${NODE_DEF_LABEL}/" ${COPY_DST}.yaml
+
+systemctl restart virl2.target
+```
+
+<br><br>
+
 1. コピーしたイメージで起動するubuntuを作る
 
-手動で作るなら、SETTINGSタブの Image Definition のドロップダウンから上記のlabelのものを選ぶ。
+ここからはCMLのダッシュボードで作業する。
+
+適当なラボを作り、インターネットに出ていける外部接続とubuntuを作成する。
+
+ubuntuのSETTINGSタブの Image Definition のドロップダウンから上記のlabelのものを選んでから起動する。
 
 起動したらアップデート、FRRのインストール、などなどを実行して好みのubuntuに仕上げる。
+
+1. 自動化してubuntuを作成する
 
 この作業を手動でやるのは少々面倒なので、pythonで自動化する。
 
