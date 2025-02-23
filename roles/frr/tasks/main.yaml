@@ -4,39 +4,39 @@
 # install libyang
 #
 
-- name: git clone libyang
+- name: Execute git clone libyang
   ansible.builtin.git:
     repo: "{{ libyang_repo_url }}"
     dest: /tmp/libyang
     version: "{{ libyang_version }}"
 
-- name: create build directory
+- name: Create build directory
   ansible.builtin.file:
     path: /tmp/libyang/build
     state: directory
 
-- name: cmake
+- name: Execute cmake
   ansible.builtin.command:
     cmd: 'cmake --install-prefix /usr -D CMAKE_BUILD_TYPE:String="Release" ..'
   args:
     chdir: /tmp/libyang/build
 
-- name: execute make
+- name: Execute make
   community.general.make:
     chdir: /tmp/libyang/build
 
-- name: execute make install
+- name: Execute make install
   community.general.make:
     target: install
     chdir: /tmp/libyang/build
 
-- name: create group 'frr'
+- name: Create group 'frr'
   ansible.builtin.group:
     name: frr
     state: present
     gid: 92
 
-- name: create group 'frrvty'
+- name: Create group 'frrvty'
   ansible.builtin.group:
     name: frrvty
     state: present
@@ -54,18 +54,18 @@
       - frr
       - frrvty
 
-- name: git clone frr
+- name: Execute git clone frr
   ansible.builtin.git:
     repo: "{{ frr_repo_url }}"
     dest: /tmp/frr
 
-- name: execute bootstrap.sh
+- name: Execute bootstrap.sh
   ansible.builtin.command:
     cmd: ./bootstrap.sh
   args:
     chdir: /tmp/frr
 
-- name: execute configure
+- name: Execute configure
   ansible.builtin.command:
     cmd: |-
       ./configure
@@ -90,70 +90,81 @@
   args:
     chdir: /tmp/frr
 
-- name: execute make
+- name: Execute make
   community.general.make:
     chdir: /tmp/frr
 
-- name: execute make install
+- name: Execute make install
   community.general.make:
     target: install
     chdir: /tmp/frr
 
-- name: execute install
+- name: Execute install
   ansible.builtin.command:
     cmd: install -m 775 -o frr -g frr -d /var/log/frr
   args:
     chdir: /tmp/frr
 
-- name: execute install
+- name: Execute install
   ansible.builtin.command:
     cmd: install -m 775 -o frr -g frrvty -d /etc/frr
   args:
     chdir: /tmp/frr
 
-- name: execute install
+- name: Execute install
   ansible.builtin.command:
     cmd: install -m 640 -o frr -g frrvty tools/etc/frr/vtysh.conf /etc/frr/vtysh.conf
   args:
     chdir: /tmp/frr
 
-- name: execute install
+- name: Execute install
   ansible.builtin.command:
     cmd: install -m 640 -o frr -g frr tools/etc/frr/frr.conf /etc/frr/frr.conf
   args:
     chdir: /tmp/frr
 
-- name: execute install
+- name: Execute install
   ansible.builtin.command:
     cmd: install -m 640 -o frr -g frr tools/etc/frr/daemons.conf /etc/frr/daemons.conf
   args:
     chdir: /tmp/frr
 
-- name: execute install
+- name: Execute install
   ansible.builtin.command:
     cmd: install -m 640 -o frr -g frr tools/etc/frr/daemons /etc/frr/daemons
   args:
     chdir: /tmp/frr
 
-- name: execute install
+- name: Execute install
   ansible.builtin.command:
     cmd: install -m 644 tools/frr.service /etc/systemd/system/frr.service
   args:
     chdir: /tmp/frr
 
-- name: change kernel configuration
+- name: Change kernel configuration
   ansible.builtin.lineinfile:
     path: /etc/sysctl.conf
     regexp: '^#net.ipv4.ip_forward='
     line: net.ipv4.ip_forward=1
 
-- name: change kernel configuration
+- name: Change kernel configuration
   ansible.builtin.lineinfile:
     path: /etc/sysctl.conf
     regexp: '^#net.ipv6.conf.all.forwarding='
     line: net.ipv6.conf.all.forwarding=1
 
-- name: Make sure a service unit is running
+- name: Start frr daemon on start ubuntu
   ansible.builtin.systemd_service:
     enabled: true
     name: frr
+
+- name: Make sure a service unit is running
+  ansible.builtin.systemd_service:
+    state: started
+    name: frr
+
+- name: Change frr configuration
+  ansible.builtin.lineinfile:
+    path: /etc/frr/daemons
+    regexp: '^fabricd=no'
+    line: fabricd=yes
