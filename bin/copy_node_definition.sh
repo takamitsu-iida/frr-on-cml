@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# 特権ユーザのシェルを取る
+# パスワードを聞かれる
 sudo -s -E
 
 COPY_SRC="ubuntu-24-04-20241004"
@@ -9,7 +11,7 @@ NODE_DEF_ID=${COPY_DST}
 NODE_DEF_LABEL="Ubuntu 24.04 - 04 Oct 2024 FRR installed"
 NODE_DEF_DESCRIPTION="Ubuntu 24.04 - 04 Oct 2024 FRR installed"
 
-cd /var/lib/libvirt/images/virl-based-images
+cd /var/lib/libvirt/images/virl-base-images
 
 cp -a ${COPY_SRC} ${COPY_DST}
 

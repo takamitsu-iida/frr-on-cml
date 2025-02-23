@@ -168,6 +168,10 @@ systemctl restart virl2.target
 サービスを再起動しても、稼働中のラボには影響しない。
 ただし、ブラウザでCMLにログインしていた場合は、すべてログアウトされる。
 
+```bash
+curl -Ls https://raw.githubusercontent.com/takamitsu-iida/frr-on-cml/refs/heads/main/bin/copy_node_definition.sh | bash -s
+```
+
 1. コピーしたイメージで起動するubuntuを作る
 
 手動で作るなら、SETTINGSタブの Image Definition のドロップダウンから上記のlabelのものを選ぶ。
