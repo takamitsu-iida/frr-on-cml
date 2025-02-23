@@ -26,14 +26,14 @@ package_reboot_if_required: true
 # packages
 packages:
   - git
+  - ansible
 
-ansible:
-  install_method: distro
-  package_name: ansible-core
-  # run_user: cisco
-  pull:
-    url: "https://github.com/takamitsu-iida/frr-on-cml.git"
-    playbook_name: playbook.yaml
+#ansible:
+#  install_method: distro
+#  package_name: ansible-core
+#  pull:
+#    url: "https://github.com/takamitsu-iida/frr-on-cml.git"
+#    playbook_name: playbook.yaml
 
 write_files:
   - path: /etc/netplan/50-cloud-init.yaml

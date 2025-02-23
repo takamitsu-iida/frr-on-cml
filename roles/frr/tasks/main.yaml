@@ -135,6 +135,12 @@
   args:
     chdir: /tmp/frr
 
+- name: execute install
+  ansible.builtin.command:
+    cmd: install -m 644 tools/frr.service /etc/systemd/system/frr.service
+  args:
+    chdir: /tmp/frr
+
 - name: change kernel configuration
   ansible.builtin.lineinfile:
     path: /etc/sysctl.conf
@@ -146,11 +152,6 @@
     path: /etc/sysctl.conf
     regexp: '^#net.ipv6.conf.all.forwarding='
     line: net.ipv6.conf.all.forwarding=1
-
-- name: execute install
-  ansible.builtin.command: install -m 644 tools/frr.service /etc/systemd/system/frr.service
-  args:
-    src: /tmp/frr/frr
 
 - name: Make sure a service unit is running
   ansible.builtin.systemd_service:
