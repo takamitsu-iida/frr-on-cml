@@ -7,7 +7,7 @@
 - name: git clone libyang
   ansible.builtin.git:
     repo: "{{ libyang_repo_url }}"
-    dest: /tmp
+    dest: /tmp/libyang
     version: "{{ libyang_version }}"
 
 - name: create build directory
@@ -15,10 +15,11 @@
     path: /tmp/libyang/build
     state: directory
 
-- name: execute cmake
-  ansible.builtin.command: cmake --install-prefix /usr -D CMAKE_BUILD_TYPE:String="Release" ..
+- name: cmake
+  ansible.builtin.command:
+    cmd: 'cmake --install-prefix /usr -D CMAKE_BUILD_TYPE:String="Release" ..'
   args:
-    src: /tmp/libyang/build
+    chdir: /tmp/libyang/build
 
 - name: execute make
   community.general.make:
@@ -56,16 +57,17 @@
 - name: git clone frr
   ansible.builtin.git:
     repo: "{{ frr_repo_url }}"
-    dest: /tmp
+    dest: /tmp/frr
 
 - name: execute bootstrap.sh
-  ansible.builtin.command: ./bootstrap.sh
+  ansible.builtin.command:
+    cmd: ./bootstrap.sh
   args:
-    src: /tmp/frr
+    chdir: /tmp/frr
 
 - name: execute configure
   ansible.builtin.command:
-    ./configure
+    cmd: ./configure
     --prefix=/usr
     --includedir=/usr/include
     --bindir=/usr/bin
@@ -85,7 +87,7 @@
     --with-pkg-git-version
     --with-pkg-extra-version=-MyOwnFRRVersion
   args:
-    src: /tmp/frr
+    chdir: /tmp/frr
 
 - name: execute make
   community.general.make:
@@ -97,34 +99,40 @@
     chdir: /tmp/frr
 
 - name: execute install
-  ansible.builtin.command: install -m 775 -o frr -g frr -d /var/log/frr
+  ansible.builtin.command:
+    cmd: install -m 775 -o frr -g frr -d /var/log/frr
   args:
-    src: /tmp/frr
+    chdir: /tmp/frr
 
 - name: execute install
-  ansible.builtin.command: install -m 775 -o frr -g frrvty -d /etc/frr
+  ansible.builtin.command:
+    cmd: install -m 775 -o frr -g frrvty -d /etc/frr
   args:
-    src: /tmp/frr
+    chdir: /tmp/frr
 
 - name: execute install
-  ansible.builtin.command: install -m 640 -o frr -g frrvty tools/etc/frr/vtysh.conf /etc/frr/vtysh.conf
+  ansible.builtin.command:
+    cmd: install -m 640 -o frr -g frrvty tools/etc/frr/vtysh.conf /etc/frr/vtysh.conf
   args:
-    src: /tmp/frr
+    chdir: /tmp/frr
 
 - name: execute install
-  ansible.builtin.command: install -m 640 -o frr -g frr tools/etc/frr/frr.conf /etc/frr/frr.conf
+  ansible.builtin.command:
+    cmd: install -m 640 -o frr -g frr tools/etc/frr/frr.conf /etc/frr/frr.conf
   args:
-    src: /tmp/frr
+    chdir: /tmp/frr
 
 - name: execute install
-  ansible.builtin.command: install -m 640 -o frr -g frr tools/etc/frr/daemons.conf /etc/frr/daemons.conf
+  ansible.builtin.command:
+    cmd: install -m 640 -o frr -g frr tools/etc/frr/daemons.conf /etc/frr/daemons.conf
   args:
-    src: /tmp/frr
+    chdir: /tmp/frr
 
 - name: execute install
-  ansible.builtin.command: install -m 640 -o frr -g frr tools/etc/frr/daemons /etc/frr/daemons
+  ansible.builtin.command:
+    cmd: install -m 640 -o frr -g frr tools/etc/frr/daemons /etc/frr/daemons
   args:
-    src: /tmp/frr
+    chdir: /tmp/frr
 
 - name: change kernel configuration
   ansible.builtin.lineinfile:
