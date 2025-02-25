@@ -173,7 +173,7 @@ systemctl restart virl2.target
 ここまでの作業をシェルスクリプトにしたので、コックピットのターミナルを開いてから、以下をコピペするだけでよい。
 
 ```bash
-curl -Ls https://raw.githubusercontent.com/takamitsu-iida/frr-on-cml/refs/heads/main/bin/copy_node_definition.sh | bash -s
+curl -H 'Cache-Control: no-cache' -Ls https://raw.githubusercontent.com/takamitsu-iida/frr-on-cml/refs/heads/main/bin/copy_node_definition.sh | bash -s
 ```
 
 スクリプトの中身は以下の通り。
