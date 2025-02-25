@@ -129,6 +129,7 @@ if __name__ == '__main__':
         # 外部接続用のNATを作る
         ext_conn_node = lab.create_node("ext-conn-0", "external_connector", 0, 0)
 
+        # ubuntuのインスタンスを作る
         ubuntu_node = lab.create_node("frr", 'ubuntu', 0, 100)
 
         # 初期状態はインタフェースが存在しないので、追加する
@@ -154,10 +155,10 @@ if __name__ == '__main__':
             "UBUNTU_PASSWORD": UBUNTU_PASSWORD,
         }
 
-        # 設定を作る
+        # cloud-initのテキストを作る
         config = template.render(context)
 
-        # ノードのconfigを設定する
+        # ノードのconfigにcloud-initのテキストを設定する
         ubuntu_node.config = config
 
         # 起動イメージを指定する
@@ -169,11 +170,10 @@ if __name__ == '__main__':
         # start the lab
         lab.start()
 
-        print(f"lab id: {lab.id}")
-        print(f"node id: {ubuntu_node.id}")
-
-        print("\nubuntu image directory")
+        print("\n\n")
+        print("To commit changes, execute following commands in cml cockpit terminal.")
         print(f"cd /var/local/virl2/images/{lab.id}/{ubuntu_node.id}")
+        print("qemu-img commit node0.img")
 
         return 0
 

@@ -37,3 +37,5 @@ sed -i -e "s/^label:.*\$/label: ${NODE_DEF_LABEL}/" ${COPY_DST}.yaml
 sed -i -e "s/^description:.*\$/description: ${NODE_DEF_LABEL}/" ${COPY_DST}.yaml
 
 systemctl restart virl2.target
+
+cat ${COPY_DST}.yaml
