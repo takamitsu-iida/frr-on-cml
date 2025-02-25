@@ -8,6 +8,12 @@ CML_USERNAME = "admin"
 # CMLのパスワード
 CML_PASSWORD = "Cisco123"
 
+# FRRをインストールしたubuntuのイメージを構築するためのラボ
+CREATE_FRR_LAB = "create frr"
+
+# 構築するイメージに付与するタグ
+CREATE_FRR_TAG = "serial:6000"
+
 # Labのタイトル
 LAB_TITLE = "Test123"
 

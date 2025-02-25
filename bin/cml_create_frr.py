@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-LAB_TITLE = "create frr"
-
 #
 # 標準ライブラリのインポート
 #
@@ -24,6 +22,7 @@ except ImportError as e:
 #
 from cml_config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD
 from cml_config import UBUNTU_USERNAME, UBUNTU_PASSWORD
+from cml_config import CREATE_FRR_LAB, CREATE_FRR_TAG
 
 # このファイルへのPathオブジェクト
 app_path = Path(__file__)
@@ -118,13 +117,13 @@ if __name__ == '__main__':
         client.is_system_ready(wait=True)
 
         # 同タイトルのラボを消す
-        for lab in client.find_labs_by_title(LAB_TITLE):
+        for lab in client.find_labs_by_title(CREATE_FRR_LAB):
             lab.stop()
             lab.wipe()
             lab.remove()
 
         # ラボを新規作成
-        lab = client.create_lab(title=LAB_TITLE)
+        lab = client.create_lab(title=CREATE_FRR_LAB)
 
         # 外部接続用のNATを作る
         ext_conn_node = lab.create_node("ext-conn-0", "external_connector", 0, 0)
@@ -164,8 +163,9 @@ if __name__ == '__main__':
         # 起動イメージを指定する
         ubuntu_node.image_definition = "ubuntu-24-04-20241004-frr"
 
-        # タグを設定
-        ubuntu_node.add_tag(tag="serial:6000")
+        # タグを設定（cml_config.pyで定義）
+        # "serial:6000"
+        ubuntu_node.add_tag(tag=CREATE_FRR_TAG)
 
         # start the lab
         lab.start()
@@ -173,7 +173,7 @@ if __name__ == '__main__':
         print("\n\n")
         print("To commit changes, execute following commands in cml cockpit terminal.")
         print(f"cd /var/local/virl2/images/{lab.id}/{ubuntu_node.id}")
-        print("qemu-img commit node0.img")
+        print("sudo qemu-img commit node0.img")
 
         return 0
 
