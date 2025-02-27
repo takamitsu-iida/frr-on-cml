@@ -13,27 +13,6 @@ ssh_authorized_keys:
 timezone: Asia/Tokyo
 locale: ja_JP.utf8
 
-# run apt-get update
-# default false
-package_update: true
-
-# default false
-package_upgrade: true
-
-# reboot if required
-package_reboot_if_required: true
-
-# packages
-packages:
-  - git
-
-ansible:
-  install_method: distro
-  package_name: ansible-core
-  # run_user: cisco
-  pull:
-    url: "https://github.com/takamitsu-iida/frr-on-cml.git"
-    playbook_name: playbook.yaml
 
 write_files:
   - path: /etc/netplan/50-cloud-init.yaml
@@ -42,7 +21,21 @@ write_files:
         version: 2
         ethernets:
           ens2:
-            dhcp4: true
+            dhcp4: false
+          ens3:
+            dhcp4: false
+          ens4:
+            dhcp4: false
+          ens5:
+            dhcp4: false
+          ens6:
+            dhcp4: false
+          ens7:
+            dhcp4: false
+          ens8:
+            dhcp4: false
+          ens9:
+            dhcp4: false
 
 runcmd:
 
