@@ -155,17 +155,25 @@ if __name__ == '__main__':
         # Jinja2のTemplateをインスタンス化する
         template = Template(template_config)
 
+        frr_template_config = read_template_config(filename='frr_config.j2')
+        frr_template = Template(frr_template_config)
+        frr_context = {
+            "ROUTER_ID": "",
+        }
+
         # templateに渡すコンテキストオブジェクトを作成する
         # Jinja2テンプレートで使っている変数
         #   hostname: {{ HOSTNAME }}
         #   name: {{ UBUNTU_USERNAME }}
         #   password: {{ UBUNTU_PASSWORD }}
         #   - fe80::{{ ROUTER_ID }}/64
+        #   {{ FRR_CONF }}
         context = {
             "HOSTNAME": "",
             "UBUNTU_USERNAME": UBUNTU_USERNAME,
             "UBUNTU_PASSWORD": UBUNTU_PASSWORD,
-            "ROUTER_ID": ""
+            "ROUTER_ID": "",
+            "FRR_CONF": ""
         }
 
         # ルータを区別するための番号
@@ -219,9 +227,14 @@ if __name__ == '__main__':
             # 外部接続用スイッチと接続
             # lab.connect_two_nodes(ext_switch_node, node)
 
-            # 設定を作る
+            # FRRの設定を作る
+            frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
+            frr_config = frr_template.render(frr_context)
+
+            # nodeに適用するcloud-init設定を作る
             context["HOSTNAME"] = node_name
             context["ROUTER_ID"] = router_number
+            context["FRR_CONF"] = frr_config
             config = template.render(context)
 
             # ノードに設定する
@@ -262,9 +275,14 @@ if __name__ == '__main__':
                 node_tag = f"serial:{SERIAL_PORT + router_number}"
                 node.add_tag(tag=node_tag)
 
-                # 設定
+                # FRRの設定を作る
+                frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
+                frr_config = frr_template.render(frr_context)
+
+                # cloud-init設定
                 context["HOSTNAME"] = node_name
                 context["ROUTER_ID"] = router_number
+                context["FRR_CONF"] = frr_config
                 node.configuration = template.render(context)
 
                 # tier1ルータと接続する
@@ -301,9 +319,14 @@ if __name__ == '__main__':
                 node_tag = f"serial:{SERIAL_PORT + router_number}"
                 node.add_tag(tag=node_tag)
 
+                # FRRの設定を作る
+                frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
+                frr_config = frr_template.render(frr_context)
+
                 # 設定
                 context["HOSTNAME"] = node_name
                 context["ROUTER_ID"] = router_number
+                context["FRR_CONF"] = frr_config
                 node.configuration = template.render(context)
 
                 # Tier2と接続

@@ -51,3 +51,9 @@ write_files:
             dhcp4: false
             addresses:
                 - fe80::{{ ROUTER_ID }}/64
+
+runcmd:
+  - |
+    cat - << 'EOS' >> /etc/frr/frr.conf
+    {{ FRR_CONF }}
+    EOS

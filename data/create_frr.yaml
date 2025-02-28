@@ -36,9 +36,11 @@ ansible:
     playbook_name: playbook.yaml
 
 write_files:
-  - path: /etc/netplan/60-network-config.yaml
+
+  - path: /etc/netplan/60-cloud-init.yaml
     content: |
       network:
+        renderer: networkd
         version: 2
         ethernets:
           ens2:
@@ -51,3 +53,5 @@ runcmd:
     rsz () if [[ -t 0 ]]; then local escape r c prompt=$(printf '\e7\e[r\e[999;999H\e[6n\e8'); IFS='[;' read -sd R -p "$prompt" escape r c; stty cols $c rows $r; fi
     rsz
     EOS
+
+  - systemctl disable --now systemd-networkd-wait-online.service
