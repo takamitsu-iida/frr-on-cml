@@ -556,3 +556,20 @@ cd frr-on-cml
 
 ansible-playbook playbook.yaml
 ```
+
+
+<br><br>
+
+# 手順まとめ
+
+コックピットにログインして、Ubuntuのイメージをコピーするシェルスクリプトを実行する。
+
+Pythonスクリプト `bin/cml_create_frr.py` を実行して "create frr" ラボを作る。
+
+作成したUbuntuにログインしてこのリポジトリをクローンする。
+
+FRRをインストールする `ansible-playbook playbook.yaml` を実行する。
+
+コックピットにログインして、イメージの変更をコミットする。
+
+以降はFRRインストール済みのイメージを使ってUbuntuを起動すればよい。

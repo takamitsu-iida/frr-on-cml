@@ -24,6 +24,7 @@ except ImportError as e:
 from cml_config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD
 from cml_config import LAB_TITLE
 from cml_config import SERIAL_PORT, UBUNTU_USERNAME, UBUNTU_PASSWORD
+from cml_config import UBUNTU_IMAGE_DEFINITION
 
 
 # このファイルへのPathオブジェクト
@@ -100,9 +101,8 @@ logger.addHandler(file_handler)
 #
 if __name__ == '__main__':
 
-    def read_template_config() -> str:
-        filename = 'cloud-init.yaml.j2'
-        p = app_home.joinpath(filename)
+    def read_template_config(filename='') -> str:
+        p = data_dir.joinpath(filename)
         try:
             with p.open() as f:
                 return f.read()
@@ -111,30 +111,9 @@ if __name__ == '__main__':
             sys.exit(1)
 
 
-    def create_node(lab: Lab, label: str, x: int = 0, y: int = 0) -> Node:
-        # create_node(
-        #   label: str,
-        #   node_definition: str,
-        #   x: int = 0, y: int = 0,
-        #   wait: bool | None = None,
-        #   populate_interfaces: bool = False, **kwargs
-        # )→ Node
-
-        node = lab.create_node(label, 'ubuntu', x, y)
-
-        # 初期状態はインタフェースが存在しないので、追加する
-        # Ubuntuのslot番号の範囲は0-7
-        # slot番号はインタフェース名ではない
-        # ens2-ens9が作られる
-        for i in range(8):
-            node.create_interface(i, wait=True)
-
-        return node
-
-
-
     def main():
 
+        # CMLを操作するvirl2_clientをインスタンス化
         client = ClientLibrary(f"https://{CML_ADDRESS}/", CML_USERNAME, CML_PASSWORD, ssl_verify=False)
 
         # 接続を待機する
@@ -149,55 +128,189 @@ if __name__ == '__main__':
         # ラボを新規作成
         lab = client.create_lab(title=LAB_TITLE)
 
-        # 外部接続用のNATを作る
-        ext_conn_node = lab.create_node("ext-conn-0", "external_connector", 0, 0)
+        # (X, Y)座標
+        x = 0
+        y = 0
+        grid_width = 160
 
-        # NATに接続するスイッチ（アンマネージド）
-        nat_switch = lab.create_node("nat-sw", "unmanaged_switch", 0, 200)
+        # 外部接続用のブリッジを作る
+        ext_conn_node = lab.create_node("bridge1", "external_connector", x, y)
 
-        # NATとスイッチを接続する
-        lab.connect_two_nodes(ext_conn_node, nat_switch)
+        # デフォルトはNATなので、これを"bridge1"に変更する
+        # bridge1は追加したブリッジで、インターネット接続はない
+        # このLANに足を出せば、別のラボの仮想マシンであっても通信できる
+        ext_conn_node.configuration = "bridge1"
 
-        # Ubuntuに設定するcloud-init.yamlのJinja2テンプレートを取り出す
-        template_config = read_template_config()
+        # bridge1に接続するスイッチ（アンマネージド）を作る
+        # 場所はブリッジの下
+        y += grid_width
+        ext_switch_node = lab.create_node("ext-sw", "unmanaged_switch", x, y)
+
+        # bridge1とスイッチを接続する
+        lab.connect_two_nodes(ext_conn_node, ext_switch_node)
+
+        # ubuntuに設定するcloud-init.yamlのJinja2テンプレートを取り出す
+        template_config = read_template_config(filename='create_lab.yaml.j2')
 
         # Jinja2のTemplateをインスタンス化する
         template = Template(template_config)
 
-        # templateに渡すコンテキストオブジェクト
+        # templateに渡すコンテキストオブジェクトを作成する
+        # Jinja2テンプレートで使っている変数
+        #   hostname: {{ HOSTNAME }}
+        #   name: {{ UBUNTU_USERNAME }}
+        #   password: {{ UBUNTU_PASSWORD }}
+        #   - fe80::{{ ROUTER_ID }}/64
         context = {
             "HOSTNAME": "",
             "UBUNTU_USERNAME": UBUNTU_USERNAME,
             "UBUNTU_PASSWORD": UBUNTU_PASSWORD,
+            "ROUTER_ID": ""
         }
 
-        # X座標
-        x = 0
-        x_grid_width = 50
+        # ルータを区別するための番号
+        router_number = 1
 
-        # Ubuntuを8個作る
-        # iは0始まり
-        for i in range(8):
-            x = i * x_grid_width
+        # スマートタグ
+        SPINE_TAG = "SPINE"
 
-            # ubuntuを作成
-            node_name = f"ubuntu-{i + 1}"
-            node = create_node(lab, node_name, x, 400)
+        # 作成するTier1ノードを格納しておくリスト
+        tier1_nodes = []
 
-            # タグを設定
-            # 例 serial:6001
-            tag = f"serial:{SERIAL_PORT + i + 1}"
-            node.add_tag(tag=tag)
+        # Tier1のUbuntuを3個作る
+        x += grid_width
+        for i in range(3):
+            # Y座標
+            y = i * grid_width
 
-            # NAT用スイッチと接続
-            lab.connect_two_nodes(nat_switch, node)
+            # ubuntuをインスタンス化する
+            # create_node(
+            #   label: str,
+            #   node_definition: str,
+            #   x: int = 0, y: int = 0,
+            #   wait: bool | None = None,
+            #   populate_interfaces: bool = False, **kwargs
+            # )→ Node
+
+            # ルータの名前
+            node_name = f"R{router_number}"
+
+            # その名前でUbuntuをインスタンス化する
+            node = lab.create_node(node_name, 'ubuntu', x, y)
+
+            # 初期状態はインタフェースが存在しないので追加する
+            # Ubuntuのslot番号範囲は0-7なので、最大8個のNICを作れる
+            # slot番号はインタフェース名ではない
+            # OSから見えるインタフェース目はens2, ens3, ...ens9となる
+            for _ in range(8):
+                node.create_interface(_, wait=True)
+
+            # 起動イメージを指定する
+            node.image_definition = UBUNTU_IMAGE_DEFINITION
+
+            # スマートタグを設定
+            node.add_tag(tag=SPINE_TAG)
+
+            # ノード個別のタグを設定
+            # 例 serial:7001
+            node_tag = f"serial:{SERIAL_PORT + router_number}"
+            node.add_tag(tag=node_tag)
+
+            # 外部接続用スイッチと接続
+            # lab.connect_two_nodes(ext_switch_node, node)
 
             # 設定を作る
             context["HOSTNAME"] = node_name
+            context["ROUTER_ID"] = router_number
             config = template.render(context)
 
-            # ノードのconfigを設定する
-            node.config = config
+            # ノードに設定する
+            node.configuration = config
+
+            # リストに追加する
+            tier1_nodes.append(node)
+
+            # ルータを作ったので一つ数字を増やす
+            router_number += 1
+
+        # 続いてクラスタを2個作る
+        x += grid_width
+        y = 0
+        num_clusters = 2
+        for i in range(num_clusters):
+
+            tier2_nodes = []
+
+            # 各クラスタにTier2を2個作る
+            for j in range(2):
+                node_name = f"R{router_number}"
+                node = lab.create_node(node_name, 'ubuntu', x, y)
+                y += grid_width
+
+                # NICを8個追加
+                for _ in range(8):
+                    node.create_interface(_, wait=True)
+
+                # 起動イメージを指定
+                node.image_definition = UBUNTU_IMAGE_DEFINITION
+
+                # スマートタグを設定
+                node.add_tag(tag=f"cluster-{i + 1}")
+
+                # ノード個別のタグを設定
+                # 例 serial:7201
+                node_tag = f"serial:{SERIAL_PORT + router_number}"
+                node.add_tag(tag=node_tag)
+
+                # 設定
+                context["HOSTNAME"] = node_name
+                context["ROUTER_ID"] = router_number
+                node.configuration = template.render(context)
+
+                # tier1ルータと接続する
+                for n in tier1_nodes:
+                    lab.connect_two_nodes(n, node)
+
+                # リストに追加
+                tier2_nodes.append(node)
+
+                router_number += 1
+
+
+            # 続いてクラスタ内にTier3を作る
+            tier3_x = x + grid_width
+            tier3_y = i * grid_width * 2 + int(grid_width / 2)
+            for k in range(3):
+
+                node_name = f"R{router_number}"
+                node = lab.create_node(node_name, 'ubuntu', tier3_x, tier3_y)
+                tier3_x += grid_width
+
+                # NICを8個追加
+                for _ in range(8):
+                    node.create_interface(_, wait=True)
+
+                # 起動イメージを指定
+                node.image_definition = UBUNTU_IMAGE_DEFINITION
+
+                # スマートタグを設定
+                node.add_tag(tag=f"cluster-{i + 1}")
+
+                # ノード個別のタグを設定
+                # 例 serial:7301
+                node_tag = f"serial:{SERIAL_PORT + router_number}"
+                node.add_tag(tag=node_tag)
+
+                # 設定
+                context["HOSTNAME"] = node_name
+                context["ROUTER_ID"] = router_number
+                node.configuration = template.render(context)
+
+                # Tier2と接続
+                for n in tier2_nodes:
+                    lab.connect_two_nodes(n, node)
+
+                router_number += 1
 
 
         # start the lab

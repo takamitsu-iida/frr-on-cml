@@ -98,9 +98,8 @@ logger.addHandler(file_handler)
 #
 if __name__ == '__main__':
 
-    def read_template_config() -> str:
-        filename = 'cloud-init.yaml.j2'
-        p = app_home.joinpath(filename)
+    def read_template_config(filename='') -> str:
+        p = data_dir.joinpath(filename)
         try:
             with p.open() as f:
                 return f.read()
@@ -142,7 +141,7 @@ if __name__ == '__main__':
         lab.connect_two_nodes(ext_conn_node, ubuntu_node)
 
         # Ubuntuに設定するcloud-init.yamlのJinja2テンプレートを取り出す
-        template_config = read_template_config()
+        template_config = read_template_config(filename='create_frr.yaml.j2')
 
         # Jinja2のTemplateをインスタンス化する
         template = Template(template_config)
