@@ -512,7 +512,6 @@ net.ipv6.conf.all.forwarding=1
 
 MPLSは有効にしない（試したけどUbuntu22では動かなかった）。
 
-
 サービス起動用のファイルをインストールする。
 
 ```bash
@@ -557,6 +556,9 @@ cd frr-on-cml
 ansible-playbook playbook.yaml
 ```
 
+このプレイブックの最後では `var/lib/cloud/` を削除して、cloud-initが実行されていなかったことにしている。
+これをしないと、次にこのイメージで起動したときにcloud-initが実行されなくなる。
+
 
 <br><br>
 
@@ -570,8 +572,15 @@ curl -H 'Cache-Control: no-cache' -Ls https://raw.githubusercontent.com/takamits
 
 ### Pythonスクリプト `bin/cml_create_frr.py` を実行して "create frr" ラボを作る
 
+### Ubuntuのコンソールに接続する
 
-### FRRをインストールする `ansible-playbook playbook.yaml` を実行する。
+CMLのアドレスが192.168.122.212の場合はこれで作成したUbuntuのシリアルコンソールに接続する。
+
+```bash
+telnet 192.168.122.212 6000
+```
+
+### FRRをインストールするプレイブックを実行する。
 
 ```bash
 sudo -s -E
@@ -582,8 +591,9 @@ cd frr-on-cml
 ansible-playbook playbook.yaml
 ```
 
-### コックピットにログインして、イメージの変更をコミットする。
 
+
+### コックピットにログインして、イメージの変更をコミットする。
 
 
 

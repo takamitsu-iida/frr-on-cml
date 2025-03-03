@@ -14,7 +14,8 @@ timezone: Asia/Tokyo
 locale: ja_JP.utf8
 
 write_files:
-  - path: /etc/netplan/60-network-config.yaml
+  # overwrite 60-cloud-init.yaml
+  - path: /etc/netplan/60-cloud-init.yaml
     content: |
       network:
         version: 2

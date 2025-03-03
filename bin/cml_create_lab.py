@@ -225,7 +225,7 @@ if __name__ == '__main__':
             node.add_tag(tag=node_tag)
 
             # 外部接続用スイッチと接続
-            # lab.connect_two_nodes(ext_switch_node, node)
+            lab.connect_two_nodes(ext_switch_node, node)
 
             # FRRの設定を作る
             frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
