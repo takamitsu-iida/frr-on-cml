@@ -16,7 +16,7 @@ locale: ja_JP.utf8
 write_files:
   # overwrite 60-cloud-init.yaml
   - path: /etc/netplan/60-cloud-init.yaml
-    content: |
+    content: |-
       network:
         version: 2
         ethernets:
@@ -53,8 +53,9 @@ write_files:
             addresses:
                 - fe80::{{ ROUTER_ID }}/64
 
+  - path: /etc/frr/frr.conf
+    content: |-
+{{ FRR_CONF }}
+
 runcmd:
-  - |
-    cat - << 'EOS' >> /etc/frr/frr.conf
-    {{ FRR_CONF }}
-    EOS
+  - reboot

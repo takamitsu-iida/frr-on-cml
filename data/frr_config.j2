@@ -1,18 +1,24 @@
+frr version 10.4-dev
+frr defaults traditional
+hostname {{ HOSTNAME }}
+log syslog informational
+service integrated-vtysh-config
+
 {%- for i in range(2, 10) %}
-    !
-    interface ens{{ i }}
-     ipv6 address fe80::{{ ROUTER_ID }}/64
-     ipv6 router openfabric 1
-    exit
+!
+interface ens{{ i }}
+ ipv6 address fe80::{{ ROUTER_ID }}/64
+ ipv6 router openfabric 1
+exit
 {%- endfor %}
-    !
-    interface lo
-     ipv6 address 2001:db8::{{ ROUTER_ID }}/128
-     ipv6 router openfabric 1
-     openfabric passive
-    exit
-    !
-    router openfabric 1
-     net 49.0000.0000.00{{ ROUTER_ID }}.00
-    exit
-    !
+!
+interface lo
+ ipv6 address 2001:db8::{{ ROUTER_ID }}/128
+ ipv6 router openfabric 1
+ openfabric passive
+exit
+!
+router openfabric 1
+ net 49.0000.0000.00{{ ROUTER_ID }}.00
+exit
+!

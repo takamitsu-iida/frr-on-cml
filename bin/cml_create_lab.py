@@ -111,6 +111,13 @@ if __name__ == '__main__':
             sys.exit(1)
 
 
+    def indent_string(text):
+        """文字列の行頭にスペースを挿入する"""
+        lines = text.splitlines()  # 文字列を改行で分割
+        indented_lines = ["      " + line for line in lines]  # 各行の先頭にスペース4個を追加
+        return "\n".join(indented_lines)  # 改行で連結して返す
+
+
     def main():
 
         # CMLを操作するvirl2_clientをインスタンス化
@@ -158,6 +165,7 @@ if __name__ == '__main__':
         frr_template_config = read_template_config(filename='frr_config.j2')
         frr_template = Template(frr_template_config)
         frr_context = {
+            "HOSTNAME": "",
             "ROUTER_ID": "",
         }
 
@@ -225,11 +233,13 @@ if __name__ == '__main__':
             node.add_tag(tag=node_tag)
 
             # 外部接続用スイッチと接続
-            lab.connect_two_nodes(ext_switch_node, node)
+            # lab.connect_two_nodes(ext_switch_node, node)
 
             # FRRの設定を作る
+            frr_context["HOSTNAME"] = node_name
             frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
             frr_config = frr_template.render(frr_context)
+            frr_config = indent_string(frr_config)
 
             # nodeに適用するcloud-init設定を作る
             context["HOSTNAME"] = node_name
@@ -278,6 +288,7 @@ if __name__ == '__main__':
                 # FRRの設定を作る
                 frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
                 frr_config = frr_template.render(frr_context)
+                frr_config = indent_string(frr_config)
 
                 # cloud-init設定
                 context["HOSTNAME"] = node_name
@@ -322,6 +333,7 @@ if __name__ == '__main__':
                 # FRRの設定を作る
                 frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
                 frr_config = frr_template.render(frr_context)
+                frr_config = indent_string(frr_config)
 
                 # 設定
                 context["HOSTNAME"] = node_name

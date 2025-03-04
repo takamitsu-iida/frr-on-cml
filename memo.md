@@ -572,6 +572,12 @@ curl -H 'Cache-Control: no-cache' -Ls https://raw.githubusercontent.com/takamits
 
 ### Pythonスクリプト `bin/cml_create_frr.py` を実行して "create frr" ラボを作る
 
+```bash
+bin/cml_create_frr.py
+```
+
+実行時に表示されるメッセージは後で利用する。
+
 ### Ubuntuのコンソールに接続する
 
 CMLのアドレスが192.168.122.212の場合はこれで作成したUbuntuのシリアルコンソールに接続する。
@@ -591,10 +597,14 @@ cd frr-on-cml
 ansible-playbook playbook.yaml
 ```
 
+### Ubuntuを停止する
 
+```bash
+shutdown -h now
+```
 
 ### コックピットにログインして、イメージの変更をコミットする。
 
-
+`cml_create_frr.py` を実行したときに表示された手順をコックピットで実行する。
 
 以降はFRRインストール済みのイメージを使ってUbuntuを起動すればよい。
