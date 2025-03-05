@@ -481,7 +481,8 @@ systemctl start frr
 FRRに入るにはvtyshを起動します。
 
 ```bash
-sudo vtysh
+sudo -s -E
+vtysh
 ```
 
 最後に `/var/lib/cloud` ディレクトリを丸ごと消去して、次に起動したときにcloud-initが走るようにします。
@@ -536,11 +537,15 @@ ansible-playbook playbook.yaml
 
 # 手順まとめ
 
+<br>
+
 ## コックピットにログインして、Ubuntuのイメージをコピーするシェルスクリプトを実行します
 
 ```bash
 curl -H 'Cache-Control: no-cache' -Ls https://raw.githubusercontent.com/takamitsu-iida/frr-on-cml/refs/heads/main/bin/copy_node_definition.sh | bash -s
 ```
+
+<br>
 
 ## Pythonスクリプト `bin/cml_create_frr.py` を実行して "create frr" ラボを作ります
 
@@ -550,13 +555,17 @@ bin/cml_create_frr.py
 
 スクリプト実行時に表示されるメッセージは後で利用します。
 
-## Ubuntuのコンソールに接続する
+<br>
+
+## Ubuntuのコンソールに接続します
 
 CMLのアドレスが192.168.122.212の場合はこれで作成したUbuntuのシリアルコンソールに接続します。
 
 ```bash
 telnet 192.168.122.212 6000
 ```
+
+<br>
 
 ## FRRをインストールするプレイブックを実行します
 
@@ -569,11 +578,15 @@ cd frr-on-cml
 ansible-playbook playbook.yaml
 ```
 
+<br>
+
 ## Ubuntuを停止します
 
 ```bash
 shutdown -h now
 ```
+
+<br>
 
 ## コックピットにログインして、イメージの変更をコミットします
 
