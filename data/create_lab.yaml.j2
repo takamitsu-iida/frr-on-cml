@@ -76,4 +76,8 @@ write_files:
 {{ FRR_CONF }}
 
 runcmd:
+
+  # enable frr fabricd
+  - sed -i -e "s/^fabricd=no/fabricd=yes/" /etc/frr/daemons
+
   - reboot

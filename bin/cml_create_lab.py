@@ -166,7 +166,8 @@ if __name__ == '__main__':
         frr_template = Template(frr_template_config)
         frr_context = {
             "HOSTNAME": "R",
-            "ROUTER_ID": "",
+            "IPv4_ROUTER_ID": "",
+            "IPv6_ROUTER_ID": "",
             "TIER": "0",
         }
 
@@ -238,7 +239,8 @@ if __name__ == '__main__':
 
             # FRRの設定を作る
             frr_context["HOSTNAME"] = node_name
-            frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
+            frr_context["IPv4_ROUTER_ID"] = str(router_number)
+            frr_context["IPv6_ROUTER_ID"] = "{:0=2}".format(router_number)
             frr_context["TIER"] = "2"
             frr_config = frr_template.render(frr_context)
             frr_config = indent_string(frr_config)
@@ -289,7 +291,8 @@ if __name__ == '__main__':
                 node.add_tag(tag=node_tag)
 
                 # FRRの設定を作る
-                frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
+                frr_context["IPv4_ROUTER_ID"] = str(router_number)
+                frr_context["IPv6_ROUTER_ID"] = "{:0=2}".format(router_number)
                 frr_context["TIER"] = "1"
                 frr_config = frr_template.render(frr_context)
                 frr_config = indent_string(frr_config)
@@ -335,7 +338,8 @@ if __name__ == '__main__':
                 node.add_tag(tag=node_tag)
 
                 # FRRの設定を作る
-                frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
+                frr_context["IPv4_ROUTER_ID"] = str(router_number)
+                frr_context["IPv6_ROUTER_ID"] = "{:0=2}".format(router_number)
                 frr_context["TIER"] = "0"
                 frr_config = frr_template.render(frr_context)
                 frr_config = indent_string(frr_config)

@@ -49,6 +49,8 @@
 
       # utitilies
       - traceroute
+      - net-tools
+
 
     # variables for frr role
     libyang_repo_url: https://github.com/CESNET/libyang.git

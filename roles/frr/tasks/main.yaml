@@ -163,11 +163,11 @@
     state: started
     name: frr
 
-- name: Change frr configuration
-  ansible.builtin.lineinfile:
-    path: /etc/frr/daemons
-    regexp: '^fabricd=no'
-    line: fabricd=yes
+#- name: Change frr configuration
+#  ansible.builtin.lineinfile:
+#    path: /etc/frr/daemons
+#    regexp: '^fabricd=no'
+#    line: fabricd=yes
 
 - name: Remove cloud-init directory
   ansible.builtin.file:
