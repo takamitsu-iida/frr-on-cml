@@ -165,8 +165,9 @@ if __name__ == '__main__':
         frr_template_config = read_template_config(filename='frr_config.j2')
         frr_template = Template(frr_template_config)
         frr_context = {
-            "HOSTNAME": "",
+            "HOSTNAME": "R",
             "ROUTER_ID": "",
+            "TIER": "0",
         }
 
         # templateに渡すコンテキストオブジェクトを作成する
@@ -187,13 +188,13 @@ if __name__ == '__main__':
         # ルータを区別するための番号
         router_number = 1
 
-        # スマートタグ
-        SPINE_TAG = "SPINE"
+        # openfabricの用語では末端に近いところからT0、T1の順で呼ぶ
+        # ここでは３階層のネットワークを作るので、T2、T1、T0を作る。
 
-        # 作成するTier1ノードを格納しておくリスト
-        tier1_nodes = []
+        # 作成するt2ノードを格納しておくリスト
+        t2_nodes = []
 
-        # Tier1のUbuntuを3個作る
+        # t2のUbuntuを3個作る
         x += grid_width
         for i in range(3):
             # Y座標
@@ -225,7 +226,7 @@ if __name__ == '__main__':
             node.image_definition = UBUNTU_IMAGE_DEFINITION
 
             # スマートタグを設定
-            node.add_tag(tag=SPINE_TAG)
+            node.add_tag(tag="TIER2")
 
             # ノード個別のタグを設定
             # 例 serial:7001
@@ -238,6 +239,7 @@ if __name__ == '__main__':
             # FRRの設定を作る
             frr_context["HOSTNAME"] = node_name
             frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
+            frr_context["TIER"] = "2"
             frr_config = frr_template.render(frr_context)
             frr_config = indent_string(frr_config)
 
@@ -251,7 +253,7 @@ if __name__ == '__main__':
             node.configuration = config
 
             # リストに追加する
-            tier1_nodes.append(node)
+            t2_nodes.append(node)
 
             # ルータを作ったので一つ数字を増やす
             router_number += 1
@@ -262,9 +264,10 @@ if __name__ == '__main__':
         num_clusters = 2
         for i in range(num_clusters):
 
-            tier2_nodes = []
+            # クラスタ内のスパインルータ（T1ルータ）を格納するリスト
+            t1_nodes = []
 
-            # 各クラスタにTier2を2個作る
+            # クラスタ内にT1ルータを2個作る
             for j in range(2):
                 node_name = f"R{router_number}"
                 node = lab.create_node(node_name, 'ubuntu', x, y)
@@ -287,6 +290,7 @@ if __name__ == '__main__':
 
                 # FRRの設定を作る
                 frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
+                frr_context["TIER"] = "1"
                 frr_config = frr_template.render(frr_context)
                 frr_config = indent_string(frr_config)
 
@@ -297,16 +301,16 @@ if __name__ == '__main__':
                 node.configuration = template.render(context)
 
                 # tier1ルータと接続する
-                for n in tier1_nodes:
+                for n in t2_nodes:
                     lab.connect_two_nodes(n, node)
 
                 # リストに追加
-                tier2_nodes.append(node)
+                t1_nodes.append(node)
 
                 router_number += 1
 
 
-            # 続いてクラスタ内にTier3を作る
+            # 続いてクラスタ内にT0ルータを作る
             tier3_x = x + grid_width
             tier3_y = i * grid_width * 2 + int(grid_width / 2)
             for k in range(3):
@@ -332,6 +336,7 @@ if __name__ == '__main__':
 
                 # FRRの設定を作る
                 frr_context["ROUTER_ID"] = "{:0=2}".format(router_number)
+                frr_context["TIER"] = "0"
                 frr_config = frr_template.render(frr_context)
                 frr_config = indent_string(frr_config)
 
@@ -342,7 +347,7 @@ if __name__ == '__main__':
                 node.configuration = template.render(context)
 
                 # Tier2と接続
-                for n in tier2_nodes:
+                for n in t1_nodes:
                     lab.connect_two_nodes(n, node)
 
                 router_number += 1
