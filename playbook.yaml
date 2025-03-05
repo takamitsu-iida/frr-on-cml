@@ -5,7 +5,8 @@
   become: true
   vars:
     packages:
-      - git
+
+      # needed to compile frr
       - autoconf
       - automake
       - libtool
@@ -30,6 +31,7 @@
       - protobuf-c-compiler
       - libprotobuf-c-dev
 
+      # frr need the newest libyang
       # needed to compile libyang
       - cmake
       - libpcre2-dev
@@ -45,9 +47,12 @@
       - libzmq5
       - libzmq3-dev
 
+      # utitilies
+      - traceroute
+
+    # variables for frr role
     libyang_repo_url: https://github.com/CESNET/libyang.git
     libyang_version: v2.1.128
-
     frr_repo_url: https://github.com/frrouting/frr.git
 
   roles:

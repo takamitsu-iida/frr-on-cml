@@ -16,6 +16,8 @@ locale: ja_JP.utf8
 write_files:
   # overwrite 60-cloud-init.yaml
   - path: /etc/netplan/60-cloud-init.yaml
+    permissions: '0600'
+    owner: root:root
     content: |-
       network:
         version: 2

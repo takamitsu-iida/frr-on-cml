@@ -556,8 +556,10 @@ cd frr-on-cml
 ansible-playbook playbook.yaml
 ```
 
-このプレイブックの最後では `var/lib/cloud/` を削除して、cloud-initが実行されていなかったことにしている。
+このプレイブックの最後では `/var/lib/cloud/` を削除して、cloud-initが実行されていなかったことにしている。
 これをしないと、次にこのイメージで起動したときにcloud-initが実行されなくなる。
+
+再起動後に手作業でいじった場合は `rm -rf /varlib/cloud` を実行すること。
 
 
 <br><br>
