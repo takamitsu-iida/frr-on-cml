@@ -28,6 +28,7 @@ packages:
   - git
   - ansible
 
+# ansible-pull
 #ansible:
 #  install_method: distro
 #  package_name: ansible-core
@@ -36,13 +37,17 @@ packages:
 #    playbook_name: playbook.yaml
 
 write_files:
-
+  #
+  # refer to netplan document
+  # https://netplan.readthedocs.io/en/latest/netplan-yaml/
+  #
   - path: /etc/netplan/60-cloud-init.yaml
     permissions: '0600'
     owner: root:root
     content: |
       network:
         version: 2
+        renderer: networkd
         ethernets:
           ens2:
             dhcp4: true
