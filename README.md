@@ -621,4 +621,4 @@ shutdown -h now
 
 ## ラボを作成します
 
-`bin/cml_create_lab.py` を実行すると、FRRで動作検証するラボを自動作成します。
+`bin/cml_create_openfabric_lab.py` を実行すると、OpenFabricの動作を検証するためのラボを自動作成します。
