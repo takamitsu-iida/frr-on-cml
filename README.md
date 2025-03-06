@@ -26,6 +26,7 @@ pip install -r requirements.txt
 > Pythonのモジュール virl2_client はCMLのバージョンと一致させる必要があります。
 > requirements.txtに記載のバージョンを確認してください。
 
+<br><br><br>
 
 # FRRインストール済みUbuntuを作成する
 
@@ -47,11 +48,13 @@ CMLに含まれるUbuntuのイメージはRead Onlyになっていますので�
 
 <br>
 
-# 手順１．コックピットでUbuntuイメージを作成する
+# 手順１．コックピットでUbuntuのイメージをコピーする
 
 CMLに登録されているUbuntuのイメージはRead Onlyなので、変更可能なイメージを作成します。
 
 この作業はCMLのコックピットで行います。
+
+<br>
 
 ### コックピットのターミナルにログイン
 
@@ -65,7 +68,9 @@ and allows recovery in the event of a system issue.
 It is available at https://192.168.122.212:9090 (opens in a new Tab/Window).
 ```
 
-## ルート権限のシェルを開く
+<br>
+
+### ルート権限のシェルを開く
 
 コックピットの左下に「端末」が見えるので、それをクリックしてターミナルを開きます。
 
@@ -77,8 +82,9 @@ sudo -s -E
 
 ルート権限を取るとプロンプトが `$` から `#` に変わります。
 
+<br>
 
-## Ubuntuのイメージが格納されている場所に移動
+### Ubuntuのイメージが格納されている場所に移動する
 
 CMLにバンドルされているUbuntuのイメージは `/var/lib/libvirt/images/virl-base-images` にありますので、そこに移動します。
 
@@ -87,7 +93,7 @@ cd /var/lib/libvirt/images
 cd virl-base-images
 ```
 
-ここにはUbuntu以外にも様々なイメージが保存されています。
+ここにはUbuntuだけでなく様々なイメージが保存されています。
 
 ```bash
 oot@cml-controller:/var/lib/libvirt/images/virl-base-images# ls -l
@@ -112,9 +118,9 @@ drwxrwxr-x 2 libvirt-qemu virl2 4096 Feb 21 04:32 ubuntu-24-04-20241004
 root@cml-controller:/var/lib/libvirt/images/virl-base-images#
 ```
 
-これらはすべてRead Onlyに設定されていますので、変更しても反映されません。
+<br>
 
-## Ubuntuのイメージをコピー
+### Ubuntuのイメージをコピーする
 
 改造して使いたいのは `ubuntu-24-04-20241004` のイメージです。このディレクトリを属性付きでコピーします。
 
@@ -130,7 +136,9 @@ cp -a ubuntu-24-04-20241004 ubuntu-24-04-20241004-frr
 chown virl2:virl2 ubuntu-24-04-20241004-frr
 ```
 
-## イメージ定義ファイルを編集
+<br>
+
+### イメージ定義ファイルを修正する
 
 コピーしたディレクトリに移動します。
 
@@ -196,7 +204,9 @@ read_only: false
 schema_version: 0.0.1
 ```
 
-## CMLのサービスを再起動
+<br>
+
+### CMLのサービスを再起動する
 
 新しく作成したディレクトリのノード定義ファイルを読み込ませるために、サービスを再起動します。
 
@@ -206,11 +216,12 @@ systemctl restart virl2.target
 
 サービスを再起動しても稼働中のラボには影響しませんが、ブラウザでCMLにログインしていた場合、すべてログアウトされます。
 
+<br>
 
-## 以上の作業を自動化するシェルスクリプト
+## 以上のコックピットでの作業を自動化するシェルスクリプト
 
 実験中は試行錯誤しながらUbuntuのイメージを何度も作り変えますので、
-ここまでの作業をシェルスクリプトにしました。
+ここまでのコックピットでの作業をシェルスクリプトにしました。
 
 スクリプトの中身は以下の通りです。
 
@@ -260,6 +271,7 @@ systemctl restart virl2.target
 curl -H 'Cache-Control: no-cache' -Ls https://raw.githubusercontent.com/takamitsu-iida/frr-on-cml/refs/heads/main/bin/copy_node_definition.sh | bash -s
 ```
 
+<br><br>
 
 # 手順２．カスタマイズしたUbuntuを作成する
 
@@ -271,10 +283,11 @@ UbuntuのSETTINGSタブの `Image Definition` のドロップダウンから、�
 
 起動したらアップデート、FRRのインストール、などなどを実行して好みのUbuntuに仕上げます。
 
+<br><br>
 
 # 手順３．変更をイメージに反映する
 
-この時点では、Ubuntuを起動するのに使ったイメージは変更されていません。
+この時点ではまだUbuntuの起動イメージは変更されていません。
 
 作業した内容を元のイメージに反映させます。
 
@@ -305,8 +318,7 @@ drwxr-xr-x 2 virl2        virl2       4096 Feb 21 07:38 cfg
 -rw-r--r-- 1 libvirt-qemu kvm   3188523008 Feb 21 07:49 node0.img
 ```
 
-node0.imgファイルは元のイメージからの変更を保持しています。
-これを元のイメージに反映します。
+node0.imgファイルは元のイメージからの変更を保持していますので、これを元のイメージに反映します。
 
 ```bash
 qemu-img commit node0.img
@@ -316,8 +328,9 @@ qemu-img commit node0.img
 
 ラボのubuntuをwipeしてコンフィグを破棄して、再び起動すると、先ほど施した変更が反映された状態で起動します。
 
+<br>
 
-## Ubuntuの作成を自動化する
+## Ubuntuをカスタマイズするためのラボを自動作成する
 
 ラボを作って、外部接続を作って、Ubuntuを作って、起動イメージを変更して、外部接続と結線して・・・といった作業を手作業でやるのは面倒なので、Pythonで自動化します。
 
@@ -325,14 +338,23 @@ qemu-img commit node0.img
 
 このラボを開始すると最新化された状態（apt update; apt dist-upgradeされた状態）でubuntuが起動します。
 
+<br>
+
 ## FRRをインストールする
 
+新しいFRRをインストールするにはソースコードからのコンパイルが伴いますので大変です。
+
 FRRのマニュアルに記載されている通りに実行します。
+
+<br>
 
 > [!NOTE]
 >
 > https://docs.frrouting.org/projects/dev-guide/en/latest/building-frr-for-ubuntu2204.html
 
+<br>
+
+必要なパッケージをインストールします。
 
 ```bash
 sudo apt install \
@@ -344,8 +366,6 @@ sudo apt install \
    libcap-dev libelf-dev libunwind-dev \
    protobuf-c-compiler libprotobuf-c-dev
 ```
-
-念の為、一度再起動します。
 
 libyangをインストールします。libyangは新しいものが必要なのでソースコードからmakeします。
 
@@ -493,13 +513,12 @@ sudo rm -rf /var/lib/cloud
 
 気が済むまでいじったらUbuntuを停止します。
 
-
+<br>
 
 ## FRRのインストールを自動化する
 
-以上のように、FRRのインストールは大変です。
-試行錯誤しながら繰り返し実行すると尚更です。
-ですので、FRRのインストール作業を自動化するansibleのプレイブックを作成しました。
+以上のように、FRRのインストール作業は大変です。
+試行錯誤しながら繰り返し実行すると尚更ですので、FRRのインストール作業を自動化するansibleのプレイブックを作成しました。
 
 これはroot権限で作業します。
 
@@ -515,7 +534,9 @@ ansible-playbook playbook.yaml
 
 このプレイブックの最後では `/var/lib/cloud/` ディレクトリを削除して、次に起動したときにcloud-initが走るようにしています。
 
-何らかの理由でこの仮想マシンを再起動してしまうとcloud-initが走ってしまいますので、再起動後に `rm -rf /var/lib/cloud` を忘れずに実行します。
+何らかの理由でこの仮想マシンを再起動してしまうと再びcloud-initが走ってしまうので、再起動後には `rm -rf /var/lib/cloud` を忘れずに実行します。
+
+<br>
 
 > [!NOTE]
 >
@@ -531,11 +552,13 @@ ansible-playbook playbook.yaml
 
 > [!NOTE]
 >
-> ansible-pullは `/root/.ansible/pull` に展開されるので、うまくいってないときは、そこにちゃんとリポジトリのプレイブック一式が展開されているか確認します。
+> ansible-pullは `/root/.ansible/pull` に展開されます。
+> 期待通りにansible-pullが走っていないときは、そこにちゃんとリポジトリのプレイブック一式が展開されているか確認します。
+> 再度プレイブックを走らせたいときも `/root/.ansible/pull` にあるプレイブックを実行します。
 
 <br><br>
 
-# 手順まとめ
+# 爆速でFRRインストール済みUbuntuを作成する手順
 
 <br>
 
@@ -590,4 +613,4 @@ shutdown -h now
 
 ## コックピットにログインして、イメージの変更をコミットします
 
-`cml_create_frr.py` を実行したときに表示された手順をコックピットで実行します。
+`cml_create_frr.py` を実行したときに表示された手順をコックピットにコピペして実行します。
