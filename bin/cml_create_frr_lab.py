@@ -3,6 +3,7 @@
 #
 # 標準ライブラリのインポート
 #
+import argparse
 import logging
 import sys
 from pathlib import Path
@@ -21,8 +22,9 @@ except ImportError as e:
 # ローカルファイルからの読み込み
 #
 from cml_config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD
-from cml_config import UBUNTU_USERNAME, UBUNTU_PASSWORD
-from cml_config import CREATE_FRR_LAB, CREATE_FRR_TAG
+from cml_config import FRR_UBUNTU_USERNAME, FRR_UBUNTU_PASSWORD
+from cml_config import FRR_LAB_NAME, FRR_UBUNTU_TAG
+from cml_config import FRR_UBUNTU_IMAGE_DEFINITION
 
 # このファイルへのPathオブジェクト
 app_path = Path(__file__)
@@ -110,19 +112,28 @@ if __name__ == '__main__':
 
     def main():
 
+        # 引数処理
+        parser = argparse.ArgumentParser(description='create openfabric lab')
+        parser.add_argument('-d', '--delete', action='store_true', default=False, help='Delete lab')
+        args = parser.parse_args()
+
         client = ClientLibrary(f"https://{CML_ADDRESS}/", CML_USERNAME, CML_PASSWORD, ssl_verify=False)
 
         # 接続を待機する
         client.is_system_ready(wait=True)
 
         # 同タイトルのラボを消す
-        for lab in client.find_labs_by_title(CREATE_FRR_LAB):
+        for lab in client.find_labs_by_title(FRR_LAB_NAME):
             lab.stop()
             lab.wipe()
             lab.remove()
 
+        # -d で起動していたらここで処理終了
+        if args.delete:
+            return 0
+
         # ラボを新規作成
-        lab = client.create_lab(title=CREATE_FRR_LAB)
+        lab = client.create_lab(title=FRR_LAB_NAME)
 
         # 外部接続用のNATを作る
         ext_conn_node = lab.create_node("ext-conn-0", "external_connector", 0, 0)
@@ -141,7 +152,7 @@ if __name__ == '__main__':
         lab.connect_two_nodes(ext_conn_node, ubuntu_node)
 
         # Ubuntuに設定するcloud-init.yamlのJinja2テンプレートを取り出す
-        template_config = read_template_config(filename='create_frr.yaml.j2')
+        template_config = read_template_config(filename='frr_lab.yaml.j2')
 
         # Jinja2のTemplateをインスタンス化する
         template = Template(template_config)
@@ -149,8 +160,8 @@ if __name__ == '__main__':
         # templateに渡すコンテキストオブジェクト
         context = {
             "HOSTNAME": "frr",
-            "UBUNTU_USERNAME": UBUNTU_USERNAME,
-            "UBUNTU_PASSWORD": UBUNTU_PASSWORD,
+            "USERNAME": FRR_UBUNTU_USERNAME,
+            "PASSWORD": FRR_UBUNTU_PASSWORD,
         }
 
         # cloud-initのテキストを作る
@@ -160,11 +171,11 @@ if __name__ == '__main__':
         ubuntu_node.config = config
 
         # 起動イメージを指定する
-        ubuntu_node.image_definition = "ubuntu-24-04-20241004-frr"
+        ubuntu_node.image_definition = FRR_UBUNTU_IMAGE_DEFINITION
 
         # タグを設定（cml_config.pyで定義）
         # "serial:6000"
-        ubuntu_node.add_tag(tag=CREATE_FRR_TAG)
+        ubuntu_node.add_tag(tag=FRR_UBUNTU_TAG)
 
         # start the lab
         lab.start()

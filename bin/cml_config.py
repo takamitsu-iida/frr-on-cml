@@ -9,27 +9,16 @@ CML_USERNAME = "admin"
 CML_PASSWORD = "Cisco123"
 
 #
-# ubuntu共通設定
+# FRRインストール済みUbuntuを作成するためのラボ設定
 #
-UBUNTU_USERNAME = "cisco"
-UBUNTU_PASSWORD = "cisco"
+FRR_LAB_NAME = "create frr"
 
-#
-# FRRをインストールしたubuntuイメージを構築するためのラボ
-#
-CREATE_FRR_LAB = "create frr"
+# ユーザ名とパスワード
+FRR_UBUNTU_USERNAME = "cisco"
+FRR_UBUNTU_PASSWORD = "cisco"
 
-# 構築するイメージに付与するタグ
-CREATE_FRR_TAG = "serial:6000"
+# 構築するUbuntuイメージに付与するタグ
+FRR_UBUNTU_TAG = "serial:6000"
 
-
-#
-# FRRでOpenFabricを検証するためのラボ
-#
-LAB_TITLE = "FRR OpenFabric"
-
-# frrがインストールされているubuntuイメージ
-UBUNTU_IMAGE_DEFINITION = "ubuntu-24-04-20241004-frr"
-
-# このラボで使うシリアルポートの開始番号
-SERIAL_PORT = 7000
+# イメージ定義
+FRR_UBUNTU_IMAGE_DEFINITION = "ubuntu-24-04-20241004-frr"

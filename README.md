@@ -562,10 +562,10 @@ curl -H 'Cache-Control: no-cache' -Ls https://raw.githubusercontent.com/takamits
 
 <br>
 
-## Pythonスクリプト `bin/cml_create_frr.py` を実行して "create frr" ラボを作ります
+## Pythonスクリプト `bin/cml_create_frr_lab.py` を実行して "create frr" ラボを作ります
 
 ```bash
-bin/cml_create_frr.py
+bin/cml_create_frr_lab.py
 ```
 
 スクリプト実行時に表示されるメッセージは後で利用します。
@@ -605,7 +605,7 @@ shutdown -h now
 
 ## コックピットにログインして、イメージの変更をコミットします
 
-`bin/cml_create_frr.py` を実行したときに表示された手順をコックピットにコピペして実行します。
+`bin/cml_create_frr_lab.py` を実行したときに表示された手順をコックピットにコピペして実行します。
 
 <br>
 

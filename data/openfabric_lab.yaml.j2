@@ -3,8 +3,8 @@ hostname: {{ HOSTNAME }}
 manage_etc_hosts: True
 system_info:
   default_user:
-    name: {{ UBUNTU_USERNAME }}
-password: {{ UBUNTU_PASSWORD }}
+    name: {{ USERNAME }}
+password: {{ PASSWORD }}
 chpasswd: { expire: False }
 ssh_pwauth: True
 ssh_authorized_keys:

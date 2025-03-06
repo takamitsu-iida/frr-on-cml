@@ -3,6 +3,7 @@
 #
 # 標準ライブラリのインポート
 #
+import argparse
 import logging
 import sys
 from pathlib import Path
@@ -13,7 +14,6 @@ from pathlib import Path
 try:
     from jinja2 import Template
     from virl2_client import ClientLibrary
-    from virl2_client.models import Lab, Node
 except ImportError as e:
     logging.critical(str(e))
     sys.exit(-1)
@@ -22,9 +22,8 @@ except ImportError as e:
 # ローカルファイルからの読み込み
 #
 from cml_config import CML_ADDRESS, CML_USERNAME, CML_PASSWORD
-from cml_config import LAB_TITLE
-from cml_config import SERIAL_PORT, UBUNTU_USERNAME, UBUNTU_PASSWORD
-from cml_config import UBUNTU_IMAGE_DEFINITION
+from cml_config import FRR_UBUNTU_USERNAME, FRR_UBUNTU_PASSWORD
+from cml_config import FRR_UBUNTU_IMAGE_DEFINITION
 
 
 # このファイルへのPathオブジェクト
@@ -101,6 +100,13 @@ logger.addHandler(file_handler)
 #
 if __name__ == '__main__':
 
+    # 作成するラボのタイトル
+    LAB_TITLE = "FRR OpenFabric"
+
+    # このラボで使うシリアルポートの開始番号
+    SERIAL_PORT = 7000
+
+
     def read_template_config(filename='') -> str:
         p = data_dir.joinpath(filename)
         try:
@@ -120,6 +126,11 @@ if __name__ == '__main__':
 
     def main():
 
+        # 引数処理
+        parser = argparse.ArgumentParser(description='create openfabric lab')
+        parser.add_argument('-d', '--delete', action='store_true', default=False, help='Delete lab')
+        args = parser.parse_args()
+
         # CMLを操作するvirl2_clientをインスタンス化
         client = ClientLibrary(f"https://{CML_ADDRESS}/", CML_USERNAME, CML_PASSWORD, ssl_verify=False)
 
@@ -131,6 +142,10 @@ if __name__ == '__main__':
             lab.stop()
             lab.wipe()
             lab.remove()
+
+        # -d で起動していたらここで処理終了
+        if args.delete:
+            return 0
 
         # ラボを新規作成
         lab = client.create_lab(title=LAB_TITLE)
@@ -157,7 +172,7 @@ if __name__ == '__main__':
         lab.connect_two_nodes(ext_conn_node, ext_switch_node)
 
         # ubuntuに設定するcloud-init.yamlのJinja2テンプレートを取り出す
-        template_config = read_template_config(filename='create_lab.yaml.j2')
+        template_config = read_template_config(filename='openfabric_lab.yaml.j2')
 
         # Jinja2のTemplateをインスタンス化する
         template = Template(template_config)
@@ -172,16 +187,10 @@ if __name__ == '__main__':
         }
 
         # templateに渡すコンテキストオブジェクトを作成する
-        # Jinja2テンプレートで使っている変数
-        #   hostname: {{ HOSTNAME }}
-        #   name: {{ UBUNTU_USERNAME }}
-        #   password: {{ UBUNTU_PASSWORD }}
-        #   - fe80::{{ ROUTER_ID }}/64
-        #   {{ FRR_CONF }}
-        context = {
+        lab_context = {
             "HOSTNAME": "",
-            "UBUNTU_USERNAME": UBUNTU_USERNAME,
-            "UBUNTU_PASSWORD": UBUNTU_PASSWORD,
+            "USERNAME": FRR_UBUNTU_USERNAME,
+            "PASSWORD": FRR_UBUNTU_PASSWORD,
             "ROUTER_ID": "",
             "FRR_CONF": ""
         }
@@ -224,7 +233,7 @@ if __name__ == '__main__':
                 node.create_interface(_, wait=True)
 
             # 起動イメージを指定する
-            node.image_definition = UBUNTU_IMAGE_DEFINITION
+            node.image_definition = FRR_UBUNTU_IMAGE_DEFINITION
 
             # スマートタグを設定
             node.add_tag(tag="TIER2")
@@ -246,13 +255,12 @@ if __name__ == '__main__':
             frr_config = indent_string(frr_config)
 
             # nodeに適用するcloud-init設定を作る
-            context["HOSTNAME"] = node_name
-            context["ROUTER_ID"] = router_number
-            context["FRR_CONF"] = frr_config
-            config = template.render(context)
+            lab_context["HOSTNAME"] = node_name
+            lab_context["ROUTER_ID"] = router_number
+            lab_context["FRR_CONF"] = frr_config
 
             # ノードに設定する
-            node.configuration = config
+            node.configuration = template.render(lab_context)
 
             # リストに追加する
             t2_nodes.append(node)
@@ -280,7 +288,7 @@ if __name__ == '__main__':
                     node.create_interface(_, wait=True)
 
                 # 起動イメージを指定
-                node.image_definition = UBUNTU_IMAGE_DEFINITION
+                node.image_definition = FRR_UBUNTU_IMAGE_DEFINITION
 
                 # スマートタグを設定
                 node.add_tag(tag=f"cluster-{i + 1}")
@@ -298,10 +306,10 @@ if __name__ == '__main__':
                 frr_config = indent_string(frr_config)
 
                 # cloud-init設定
-                context["HOSTNAME"] = node_name
-                context["ROUTER_ID"] = router_number
-                context["FRR_CONF"] = frr_config
-                node.configuration = template.render(context)
+                lab_context["HOSTNAME"] = node_name
+                lab_context["ROUTER_ID"] = router_number
+                lab_context["FRR_CONF"] = frr_config
+                node.configuration = template.render(lab_context)
 
                 # tier1ルータと接続する
                 for n in t2_nodes:
@@ -327,7 +335,7 @@ if __name__ == '__main__':
                     node.create_interface(_, wait=True)
 
                 # 起動イメージを指定
-                node.image_definition = UBUNTU_IMAGE_DEFINITION
+                node.image_definition = FRR_UBUNTU_IMAGE_DEFINITION
 
                 # スマートタグを設定
                 node.add_tag(tag=f"cluster-{i + 1}")
@@ -345,10 +353,10 @@ if __name__ == '__main__':
                 frr_config = indent_string(frr_config)
 
                 # 設定
-                context["HOSTNAME"] = node_name
-                context["ROUTER_ID"] = router_number
-                context["FRR_CONF"] = frr_config
-                node.configuration = template.render(context)
+                lab_context["HOSTNAME"] = node_name
+                lab_context["ROUTER_ID"] = router_number
+                lab_context["FRR_CONF"] = frr_config
+                node.configuration = template.render(lab_context)
 
                 # Tier2と接続
                 for n in t1_nodes:
