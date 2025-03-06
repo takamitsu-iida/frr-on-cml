@@ -24,6 +24,10 @@ OpenFabricはFRRで実装されていますので、実際に動作を検証し�
 
 ## ラボ構成
 
+スクリプト `bin/cml_create_openfabric_lab.py` を使ってCML内に自動生成したラボです。
+
+<br>
+
 ![lab](./asset/lab.png)
 
 <br>
