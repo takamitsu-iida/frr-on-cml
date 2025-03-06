@@ -1,16 +1,6 @@
 # frr-on-cml
 
-FRRouting(FRR)で実装が進んでいるOpenFabricの動作を検証します。
-
-仮想基盤はCML(Cisco Modeling Lab)を使い、UbuntuにFRRをインストールして検証します。
-
-このようなトポロジになるようにラボを作成します。
-
-<br>
-
-![lab](./asset/lab.png)
-
-<br>
+仮想基盤としてCML(Cisco Modeling Lab)を使って、UbuntuにFRRをインストールして検証します。
 
 このリポジトリのPythonスクリプトを実行するためには、以下の手順で環境を整えます。
 
