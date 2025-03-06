@@ -113,7 +113,7 @@ if __name__ == '__main__':
     def main():
 
         # 引数処理
-        parser = argparse.ArgumentParser(description='create openfabric lab')
+        parser = argparse.ArgumentParser(description='create frr lab')
         parser.add_argument('-d', '--delete', action='store_true', default=False, help='Delete lab')
         args = parser.parse_args()
 
@@ -152,7 +152,7 @@ if __name__ == '__main__':
         lab.connect_two_nodes(ext_conn_node, ubuntu_node)
 
         # Ubuntuに設定するcloud-init.yamlのJinja2テンプレートを取り出す
-        template_config = read_template_config(filename='frr_lab.yaml.j2')
+        template_config = read_template_config(filename='lab_frr.yaml.j2')
 
         # Jinja2のTemplateをインスタンス化する
         template = Template(template_config)
@@ -180,10 +180,20 @@ if __name__ == '__main__':
         # start the lab
         lab.start()
 
-        print("\n\n")
-        print("To commit changes, execute following commands in cml cockpit terminal.")
-        print(f"cd /var/local/virl2/images/{lab.id}/{ubuntu_node.id}")
-        print("sudo qemu-img commit node0.img")
+        command_text = """\n
+sudo -s -E
+git clone https://github.com/takamitsu-iida/frr-on-cml.git
+cd frr-on-cml
+ansible-playbook playbook.yaml
+"""
+        logger.info("To install FRR, execute following playbook in the ubuntu terminal." + command_text)
+
+        command_text = f"""\n
+cd /var/local/virl2/images/{lab.id}/{ubuntu_node.id}
+sudo qemu-img commit node0.img
+"""
+
+        logger.info("To commit changes, execute following commands in cml cockpit terminal." + command_text)
 
         return 0
 

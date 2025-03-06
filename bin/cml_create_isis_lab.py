@@ -101,7 +101,7 @@ logger.addHandler(file_handler)
 if __name__ == '__main__':
 
     # 作成するラボのタイトル
-    LAB_TITLE = "FRR OpenFabric"
+    LAB_TITLE = "FRR ISIS"
 
     # このラボで使うシリアルポートの開始番号
     SERIAL_PORT = 7000
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     def main():
 
         # 引数処理
-        parser = argparse.ArgumentParser(description='create openfabric lab')
+        parser = argparse.ArgumentParser(description='create isis lab')
         parser.add_argument('-d', '--delete', action='store_true', default=False, help='Delete lab')
         args = parser.parse_args()
 
@@ -172,18 +172,17 @@ if __name__ == '__main__':
         lab.connect_two_nodes(ext_conn_node, ext_switch_node)
 
         # ubuntuに設定するcloud-init.yamlのJinja2テンプレートを取り出す
-        template_config = read_template_config(filename='lab_openfabric.yaml.j2')
+        template_config = read_template_config(filename='lab_isis.yaml.j2')
 
         # Jinja2のTemplateをインスタンス化する
         template = Template(template_config)
 
-        frr_template_config = read_template_config(filename='frr_conf_openfabric.j2')
+        frr_template_config = read_template_config(filename='frr_conf_isis.j2')
         frr_template = Template(frr_template_config)
         frr_context = {
             "HOSTNAME": "R",
             "IPv4_ROUTER_ID": "",
             "IPv6_ROUTER_ID": "",
-            "TIER": "0",
         }
 
         # templateに渡すコンテキストオブジェクトを作成する
@@ -197,9 +196,6 @@ if __name__ == '__main__':
 
         # ルータを区別するための番号
         router_number = 1
-
-        # openfabricの用語では末端に近いところからT0、T1の順で呼ぶ
-        # ここでは３階層のネットワークを作るので、T2、T1、T0を作る。
 
         # 作成するt2ノードを格納しておくリスト
         t2_nodes = []

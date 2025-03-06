@@ -1,0 +1,29 @@
+! frr version 10.4-dev
+frr defaults traditional
+hostname {{ HOSTNAME }}
+log syslog informational
+service integrated-vtysh-config
+{%- for i in range(2, 10) %}
+!
+interface ens{{ i }}
+ ip router isis 1
+ isis network point-to-point
+ isis circuit-type level-2-only
+ ipv6 address fe80::{{ IPv6_ROUTER_ID }}/64
+ ipv6 router isis 1
+exit
+{%- endfor %}
+!
+interface lo
+ ip address 192.168.255.{{ IPv4_ROUTER_ID }}/32
+ ip router isis 1
+ ipv6 address 2001:db8::{{ IPv6_ROUTER_ID }}/128
+ ipv6 router isis 1
+exit
+!
+router isis 1
+ net 49.0000.0000.00{{ IPv6_ROUTER_ID }}.00
+ metric-style wide
+ is-type level-2-only
+exit
+!
