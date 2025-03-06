@@ -48,7 +48,7 @@ CMLに含まれるUbuntuのイメージはRead Onlyになっていますので�
 
 <br>
 
-# 手順１．コックピットでUbuntuのイメージをコピーする
+## 手順１．コックピットでUbuntuのイメージをコピーする
 
 CMLに登録されているUbuntuのイメージはRead Onlyなので、変更可能なイメージを作成します。
 
@@ -273,7 +273,7 @@ curl -H 'Cache-Control: no-cache' -Ls https://raw.githubusercontent.com/takamits
 
 <br><br>
 
-# 手順２．カスタマイズしたUbuntuを作成する
+## 手順２．カスタマイズしたUbuntuを作成する
 
 ここからはCMLのダッシュボードで作業します。
 
@@ -285,7 +285,7 @@ UbuntuのSETTINGSタブの `Image Definition` のドロップダウンから、�
 
 <br><br>
 
-# 手順３．変更をイメージに反映する
+## 手順３．変更をイメージに反映する
 
 この時点ではまだUbuntuの起動イメージは変更されていません。
 
@@ -556,9 +556,11 @@ ansible-playbook playbook.yaml
 > 期待通りにansible-pullが走っていないときは、そこにちゃんとリポジトリのプレイブック一式が展開されているか確認します。
 > 再度プレイブックを走らせたいときも `/root/.ansible/pull` にあるプレイブックを実行します。
 
-<br><br>
+<br><br><br>
 
 # 爆速でFRRインストール済みUbuntuを作成する手順
+
+最初に手探りで作業するのは仕方ないのですが、自動化するスクリプトを作成しておくと時間の節約になるだけでなく、応用範囲が広がります。
 
 <br>
 
@@ -613,4 +615,10 @@ shutdown -h now
 
 ## コックピットにログインして、イメージの変更をコミットします
 
-`cml_create_frr.py` を実行したときに表示された手順をコックピットにコピペして実行します。
+`bin/cml_create_frr.py` を実行したときに表示された手順をコックピットにコピペして実行します。
+
+<br>
+
+## ラボを作成します
+
+`bin/cml_create_lab.py` を実行すると、FRRで動作検証するラボを自動作成します。
