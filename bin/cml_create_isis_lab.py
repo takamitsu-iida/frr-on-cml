@@ -318,13 +318,13 @@ if __name__ == '__main__':
 
 
             # 続いてクラスタ内にT0ルータを作る
-            tier3_x = x + grid_width
-            tier3_y = i * grid_width * 2 + int(grid_width / 2)
+            t0_x = x + grid_width
+            t0_y = i * grid_width * 2 + int(grid_width / 2)
             for k in range(3):
 
                 node_name = f"R{router_number}"
-                node = lab.create_node(node_name, 'ubuntu', tier3_x, tier3_y)
-                tier3_x += grid_width
+                node = lab.create_node(node_name, 'ubuntu', t0_x, t0_y)
+                t0_x += grid_width
 
                 # NICを8個追加
                 for _ in range(8):
