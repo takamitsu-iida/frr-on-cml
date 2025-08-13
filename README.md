@@ -1,3 +1,11 @@
+# 移動しました
+
+2025年8月　下記に統合しました。
+
+https://github.com/takamitsu-iida/expt-cml
+
+<br><br><br><br><br><br><br><br><br><br>
+
 # frr-on-cml
 
 仮想基盤としてCML(Cisco Modeling Lab)を使って、UbuntuにFRRをインストールして検証します。
